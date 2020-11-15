@@ -7,8 +7,8 @@ import os.path as os
 
 def extraction(path) :
     tableau = pd.read_csv(path)
-
-    return tableau
+    matrice = tableau.to_numpy()
+    return matrice
 
 
 
@@ -18,10 +18,3 @@ def extraction(path) :
 
 
 path = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/InformationsClasses/AttributsClasses/Fluid/Fluid_v_0.csv'
-tableau = extraction(path)
-dictionnary = tableau.to_dict()
-matrice = tableau.to_numpy()
-
-print(tableau.head())
-print(dictionnary)
-print(matrice)
