@@ -5,7 +5,6 @@ class Resolve:
         Xn = X0
         Xn1 = X0+1
         while iteration < iterationMax and abs(Xn1 - Xn) > seuil :
-            print(Xn)
             Xn = Xn1
             Xn1 = (g(Xn) + relaxation * Xn)/ (1 + relaxation)
             iteration += 1

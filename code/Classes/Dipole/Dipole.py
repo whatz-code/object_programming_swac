@@ -1,14 +1,14 @@
 #creation de la classe Dipole
 from math import pi 
 from math import log10
+import matplotlib.pyplot as plt
 import sys
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes")
 from Calculus import Resolve
 class Dipole :
     #l'initialisation de la classe : 
-    def __init__(self,name = 'Dipole',fluid = 'class eau',hydraulicDiameter = None,crossSectionalArea = None,correlation = False) : 
+    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None,correlation = False) : 
         self.__name = name
-        self.__fluid = fluid
         self.__hydraulicDiameter = hydraulicDiameter
         self.__crossSectionalArea = crossSectionalArea
         self.__correlation = correlation
@@ -20,14 +20,6 @@ class Dipole :
     @name.setter 
     def name(self,name): 
         self.__name = name
-
-    @property 
-    def fluid(self): 
-        return self.__fluid
-
-    @fluid.setter 
-    def fluid(self,fluid): 
-        self.__fluid = fluid
 
     @property 
     def hydraulicDiameter(self): 
@@ -54,6 +46,7 @@ class Dipole :
         self.__correlation = correlation
 
 
+
 class Pipe(Dipole):
         #l'initialisation de la classe : 
     def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50,correlation = True) : 
@@ -77,16 +70,26 @@ class Pipe(Dipole):
     def length(self,length): 
         self.__length = length
     
-    def headLossCorrelation(reynoldsNumber, length = self.length, hydraulicDiameter = self.hydraulicDiameter, rugosity = self.rugosity):
+    def headLossCorrelation(self, reynoldsNumber, length = None, hydraulicDiameter = None, rugosity = None):
+
+        if length == None :
+            length = self.length
+        if hydraulicDiameter == None :
+            hydraulicDiameter = self.hydraulicDiameter
+        if rugosity == None :
+            rugosity = self.rugosity
+
         def laminar(reynoldsNumber):
             if reynoldsNumber > 0 :
                 return 64 / reynoldsNumber
         
         def turbulent(reynoldsNumber, rugosity, hydraulicDiameter):
-            headLossCoefficient0 = 100
-            def g(headLossCoefficient):
-                return -2 * log10(2.51 / reynoldsNumber * headLossCoefficient + rugosity / (3.7 * hydraulicDiameter))
-            headLossCoefficient = Resolve.fixePointResolution(g, headLossCoefficient0)
+            Inconnue0 = 100 #le point fixe de la fonction g définit sur la ligne suivante correspond à 1/sqrt(coefficient de perte de charge)
+            def g(Inconnue):
+                return -2 * log10(2.51 / reynoldsNumber * Inconnue + rugosity / (3.7 * hydraulicDiameter))
+            Inconnue = Resolve.fixePointResolution(g, Inconnue0) 
+            headLossCoefficient = 1 / Inconnue ** 2
+            return headLossCoefficient
         
         if reynoldsNumber < 2000 :
             return laminar(reynoldsNumber) * length / hydraulicDiameter
@@ -101,6 +104,13 @@ class Pipe(Dipole):
 
 #tests
 dipole = Dipole()
-pipe = Pipe(rugosity=0.1)
+pipe = Pipe()
 print(pipe.rugosity)
+print(pipe.hydraulicDiameter)
 print(pipe.headLossCorrelation(5000))
+
+reynolds = [i for i in range(1,100000)]
+headLossCoefficient = [pipe.headLossCorrelation(i) for i in reynolds]
+
+plt.plot(reynolds,headLossCoefficient)
+plt.show()

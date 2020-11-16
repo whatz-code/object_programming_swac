@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/home/raphael/Documents/Stage-application/Synthese-objet/Python/VirtualEnvironnement/bin/python3"
+    "python.pythonPath": "/home/raphael/Documents/Stage-application/Synthese-objet/Python/VirtualEnvironnement/bin/python3",
+    "git.ignoreLimitWarning": true
 }

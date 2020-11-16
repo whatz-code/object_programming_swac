@@ -1,7 +1,6 @@
 #l'initialisation de la classe : 
-def __init__(self,name = 'Dipole',fluid = 'class eau',hydraulicDiameter = None,crossSectionalArea = None,correlation = False) : 
+def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None,correlation = False) : 
    self.__name = name
-   self.__fluid = fluid
    self.__hydraulicDiameter = hydraulicDiameter
    self.__crossSectionalArea = crossSectionalArea
    self.__correlation = correlation
@@ -13,14 +12,6 @@ def name(self):
 @name.setter 
 def name(self,name): 
     self.__name = name
-
-@property 
-def fluid(self): 
-    return self.__fluid
-
-@fluid.setter 
-def fluid(self,fluid): 
-    self.__fluid = fluid
 
 @property 
 def hydraulicDiameter(self): 
