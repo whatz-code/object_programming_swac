@@ -13,17 +13,34 @@ def writeClass(pathToAttributes, pathToInitClass):
         #écriture des arguments de la fonction __init__
         for row in attributes : 
 
-            #On remplace ici les , par des . pour lire les nombres en python 
             L = len(row[1])
             for iterate in range(L):
-                if row[1][iterate] == ",":
+                if row[1][iterate] == ",": #On remplace ici les , par des . pour lire les nombres en python 
                     row[1] = row[1].replace(",",".")
-            fichier.write(","+row[0]+" = "+row[1])
+            if row[1].replace('.','').isdigit() :
+                fichier.write(","+row[0]+" = "+row[1])
+            else :
+                fichier.write(","+row[0]+" = "+"'"+row[1]+"'")
 
         fichier.write(") : \n")
         #initialisation des arguments de la fonction
         for row in attributes :
-            fichier.write("    {}\n".format("self."+"__"+row[0]+" = "+row[0]))
+            fichier.write("   {}\n".format("self."+"__"+row[0]+" = "+row[0]))
+        fichier.write("\n")
+
+        #getters and setters
+        for row in attributes :
+            #getters
+            fichier.write("@property \n")
+            fichier.write("def "+row[0]+"(self): \n")
+            fichier.write("    return self.__"+row[0]+"\n")
+            fichier.write("\n")
+            #setters
+            fichier.write("@"+row[0]+".setter \n")
+            fichier.write("def "+row[0]+"(self,"+row[0]+"): \n")
+            fichier.write("    self.__"+row[0]+" = "+row[0] + "\n")
+            fichier.write("\n")
+
 
 #test
 
