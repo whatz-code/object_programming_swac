@@ -48,6 +48,7 @@ class Fluid:
     @thermicConductivity.setter 
     def thermicConductivity(self,thermicConductivity): 
         self.__thermicConductivity = thermicConductivity
+    
 
 
 
