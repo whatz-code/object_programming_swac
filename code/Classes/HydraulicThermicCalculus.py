@@ -23,6 +23,21 @@ class HydraulicThermicCalculus :
     def headLoss(headLossCoefficient = None, volumetricMass = 1000, averageVelocity = None):
         return headLossCoefficient * volumetricMass * averageVelocity * averageVelocity / 2
     headLoss = staticmethod(headLoss)
+    
+    def caracteristic(dipole, flow, fluid = eau, flowRateUnity = "m3/s", pressureUnity = "Pa"):
+                
+            if flowRateUnity == "m3/h" :
+                flow = flow / 3600
+            velocity = flow / dipole.crossSectionalArea
+            reynoldsNumber = HydraulicThermicCalculus.reynolds(dipole.hydraulicDiameter,velocity,fluid.volumetricMass,fluid.dynamicViscosity,None)
+            headLossCoefficient = dipole.correlation(reynoldsNumber)
+            headLoss = HydraulicThermicCalculus.headLoss(headLossCoefficient, fluid.volumetricMass, velocity)
+            if pressureUnity == "Pa":
+                return headLoss
+            if pressureUnity == "bar" :
+                return headLoss / 10 ** 5
+            if pressureUnity == "mCE" :
+                return headLoss / 10 ** 5 * 9.81
 
 
 

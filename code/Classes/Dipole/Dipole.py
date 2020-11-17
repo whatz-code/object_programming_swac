@@ -114,18 +114,7 @@ class Pipe(Dipole):
             return turbulent(reynoldsNumber,rugosity,hydraulicDiameter) * length / hydraulicDiameter
 
     def caracteristic(self, flow, fluid = eau, flowRateUnity = "m3/s", pressureUnity = "Pa"):
-        if flowRateUnity == "m3/h" :
-            flow = flow / 3600
-        velocity = flow / self.crossSectionalArea
-        reynoldsNumber = HydraulicThermicCalculus.reynolds(self.hydraulicDiameter,velocity,fluid.volumetricMass,fluid.dynamicViscosity,None)
-        headLossCoefficient = self.correlation(reynoldsNumber)
-        headLoss = HydraulicThermicCalculus.headLoss(headLossCoefficient, fluid.volumetricMass, velocity)
-        if pressureUnity == "Pa":
-            return headLoss
-        if pressureUnity == "bar" :
-            return headLoss / 10 ** 5
-        if pressureUnity == "mCE" :
-            return headLoss / 10 ** 5 * 9.81
+        return HydraulicThermicCalculus.caracteristic(self, flow, fluid, flowRateUnity, pressureUnity)
     
 
 
@@ -195,20 +184,8 @@ class PlateHeatExchangerSide(Dipole):
         else :
             return turbulent(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse
 
-        def caracteristic(self, flow, fluid = eau, flowRateUnity = "m3/s", pressureUnity = "Pa"):
-                
-            if flowRateUnity == "m3/h" :
-                flow = flow / 3600
-            velocity = flow / self.crossSectionalArea
-            reynoldsNumber = HydraulicThermicCalculus.reynolds(self.hydraulicDiameter,velocity,fluid.volumetricMass,fluid.dynamicViscosity,None)
-            headLossCoefficient = self.correlation(reynoldsNumber)
-            headLoss = HydraulicThermicCalculus.headLoss(headLossCoefficient, fluid.volumetricMass, velocity)
-            if pressureUnity == "Pa":
-                return headLoss
-            if pressureUnity == "bar" :
-                return headLoss / 10 ** 5
-            if pressureUnity == "mCE" :
-                return headLoss / 10 ** 5 * 9.81
+    def caracteristic(self, flow, fluid = eau, flowRateUnity = "m3/s", pressureUnity = "Pa"):
+            return HydraulicThermicCalculus.caracteristic(self, flow, fluid, flowRateUnity, pressureUnity)
         
         
 

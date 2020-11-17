@@ -6,7 +6,10 @@ import os.path as os
 
 
 def extraction(path) :
-    tableau = pd.read_csv(path)
+    if path[-3:-1] == 'csv':
+        tableau = pd.read_csv(path)
+    if path[-4:-1] == 'xlsx' or path[-5:-1] == 'xlsxm' or path[-3:-1] == 'odt' :
+        tableau = pd.read_excel(path)
     matrice = tableau.to_numpy()
     return matrice
 
