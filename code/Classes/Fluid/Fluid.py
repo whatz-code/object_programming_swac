@@ -2,9 +2,9 @@
 
 class Fluid:
     #l'initialisation de la classe : 
-    def __init__(self,name = 'eau',voluminalMass = 1000,dynamicViscosity = 0.001,thermicCapacity = 4150,thermicConductivity = 0.6) : 
+    def __init__(self,name = 'eau',volumetricMass = 1000,dynamicViscosity = 0.001,thermicCapacity = 4150,thermicConductivity = 0.6) : 
         self.__name = name
-        self.__voluminalMass = voluminalMass
+        self.__volumetricMass = volumetricMass
         self.__dynamicViscosity = dynamicViscosity
         self.__thermicCapacity = thermicCapacity
         self.__thermicConductivity = thermicConductivity
@@ -18,12 +18,12 @@ class Fluid:
         self.__name = name
 
     @property 
-    def voluminalMass(self): 
-        return self.__voluminalMass
+    def volumetricMass(self): 
+        return self.__volumetricMass
 
-    @voluminalMass.setter 
-    def voluminalMass(self,voluminalMass): 
-        self.__voluminalMass = voluminalMass
+    @volumetricMass.setter 
+    def volumetricMass(self,volumetricMass): 
+        self.__volumetricMass = volumetricMass
 
     @property 
     def dynamicViscosity(self): 

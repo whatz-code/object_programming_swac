@@ -21,4 +21,3 @@ def g(x):
     return (0.8*x)
 
 zeroG = Resolve.fixePointResolution(g,0.9,-0.7)
-print(zeroG)

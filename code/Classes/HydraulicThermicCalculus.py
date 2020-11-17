@@ -24,6 +24,8 @@ class HydraulicThermicCalculus :
         return headLossCoefficient * volumetricMass * averageVelocity * averageVelocity / 2
     headLoss = staticmethod(headLoss)
 
+
+
 #tests
 reynolds = HydraulicThermicCalculus.reynolds(10,15,300,0.00001)
 print(reynolds)

@@ -1,17 +1,27 @@
 #creation de la classe Dipole
+from math import log
 from math import pi 
 from math import log10
+from math import cos
+from math import sin
+from math import tan
 import matplotlib.pyplot as plt
 import sys
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes")
+sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Fluid")
 from Calculus import Resolve
+from HydraulicThermicCalculus import HydraulicThermicCalculus
+from Fluid import Fluid
+eau = Fluid()
+
 class Dipole :
+
+     
     #l'initialisation de la classe : 
-    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None,correlation = False) : 
+    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None) : 
         self.__name = name
         self.__hydraulicDiameter = hydraulicDiameter
         self.__crossSectionalArea = crossSectionalArea
-        self.__correlation = correlation
 
     @property 
     def name(self): 
@@ -37,20 +47,24 @@ class Dipole :
     def crossSectionalArea(self,crossSectionalArea): 
         self.__crossSectionalArea = crossSectionalArea
 
-    @property 
-    def correlation(self): 
-        return self.__correlation
 
-    @correlation.setter 
-    def correlation(self,correlation): 
-        self.__correlation = correlation
 
+    def correlation(self, reynolds) :
+        return "Don't defined"
+
+    def caracteristic(self, flow, fluid) :
+        return "Don't defined"
+
+    def calorificIntake(self, flow, fluid) :
+        return "Don't defined"
 
 
 class Pipe(Dipole):
-        #l'initialisation de la classe : 
-    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50,correlation = True) : 
-        Dipole.__init__(self,name, hydraulicDiameter, hydraulicDiameter**2*pi/4,correlation)
+    
+    #l'initialisation de la classe : 
+
+    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50) : 
+        Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4)
         self.__rugosity = rugosity
         self.__length = length
     
@@ -70,7 +84,7 @@ class Pipe(Dipole):
     def length(self,length): 
         self.__length = length
     
-    def headLossCorrelation(self, reynoldsNumber, length = None, hydraulicDiameter = None, rugosity = None):
+    def correlation(self, reynoldsNumber, length = None, hydraulicDiameter = None, rugosity = None):
 
         if length == None :
             length = self.length
@@ -98,19 +112,126 @@ class Pipe(Dipole):
             return (1-coefficient) * laminar(reynoldsNumber) * length / hydraulicDiameter + coefficient * turbulent(reynoldsNumber,rugosity,hydraulicDiameter) * length / hydraulicDiameter
         else :
             return turbulent(reynoldsNumber,rugosity,hydraulicDiameter) * length / hydraulicDiameter
+
+    def caracteristic(self, flow, fluid = eau, flowRateUnity = "m3/s", pressureUnity = "Pa"):
+        if flowRateUnity == "m3/h" :
+            flow = flow / 3600
+        velocity = flow / self.crossSectionalArea
+        reynoldsNumber = HydraulicThermicCalculus.reynolds(self.hydraulicDiameter,velocity,fluid.volumetricMass,fluid.dynamicViscosity,None)
+        headLossCoefficient = self.correlation(reynoldsNumber)
+        headLoss = HydraulicThermicCalculus.headLoss(headLossCoefficient, fluid.volumetricMass, velocity)
+        if pressureUnity == "Pa":
+            return headLoss
+        if pressureUnity == "bar" :
+            return headLoss / 10 ** 5
+        if pressureUnity == "mCE" :
+            return headLoss / 10 ** 5 * 9.81
+    
+
+
                       
+class PlateHeatExchangerSide(Dipole):
+    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1) : 
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea)
+        self.__angle = angle
+        self.__length = length
+    
+    @property 
+    def angle(self): 
+        return self.__angle
+
+    @angle.setter 
+    def angle(self,angle): 
+        self.__angle = angle
+
+    @property 
+    def length(self): 
+        return self.__length
+
+    @length.setter 
+    def length(self,length): 
+        self.__length = length
+    
+    @property 
+    def Npasse(self): 
+        return self.__Npasse
+
+    @Npasse.setter 
+    def Npasse(self,Npasse): 
+        self.__Npasse = Npasse
+    
+    def correlation(self, reynoldsNumber, length = None, angle = None, Npasse = None): #correspond à la correlation de Martin
+        if length == None:
+            length = self.length
+        if angle == None:
+            angle = self.angle
+        if Npasse == None:
+            Npasse = self.Npasse
+        angle = angle * Pi / 180
+        
+        def laminar(reynoldsNumber, angle):
+            if reynoldsNumber > 0 :
+                f0 = 16 / reynoldsNumber
+                f1 = 149.25 / reynoldsNumber + 0.9625
+                etape = etapeCalcul(angle, f0, f1)
+                return 1 / etape ** 2
+            else : 
+                raise ValueError('reynoldsNumber should be superior to 0')
+
+        def turbulent(reynoldsNumber, angle):
+            f0 = (1.56 * log(reynoldsNumber) - 3) ** (-2)
+            f1 = 9.75 / reynoldsNumber ** 0.289
+            etape = etapeCalcul(angle, f0, f1)
+            return 1 / etape ** 2
+
+        def etapeCalcul(angle, f0, f1):
+            return cos(angle) / (0.045 * tan(angle) + 0.09 * sin(angle) + f0 / cos(angle)) ** (1/2) + (1 - cos(angle)) / (3.8 * f1) ** (1/2)
+
+        if reynoldsNumber < 2000 :
+            return laminar(reynoldsNumber) * length / hydraulicDiameter * Npasse
+        if reynoldsNumber >= 2000 and reynoldsNumber <=4000 :
+            coefficient = (reynoldsNumber - 2000)/2000
+            return (1-coefficient) * laminar(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse + coefficient * turbulent(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse
+        else :
+            return turbulent(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse
+
+        def caracteristic(self, flow, fluid = eau, flowRateUnity = "m3/s", pressureUnity = "Pa"):
+                
+            if flowRateUnity == "m3/h" :
+                flow = flow / 3600
+            velocity = flow / self.crossSectionalArea
+            reynoldsNumber = HydraulicThermicCalculus.reynolds(self.hydraulicDiameter,velocity,fluid.volumetricMass,fluid.dynamicViscosity,None)
+            headLossCoefficient = self.correlation(reynoldsNumber)
+            headLoss = HydraulicThermicCalculus.headLoss(headLossCoefficient, fluid.volumetricMass, velocity)
+            if pressureUnity == "Pa":
+                return headLoss
+            if pressureUnity == "bar" :
+                return headLoss / 10 ** 5
+            if pressureUnity == "mCE" :
+                return headLoss / 10 ** 5 * 9.81
+        
+        
 
 
 
 #tests
+eau = Fluid()
 dipole = Dipole()
 pipe = Pipe()
+def calorificIntake():
+    return None
+pipe.calorificIntake = calorificIntake
 print(pipe.rugosity)
 print(pipe.hydraulicDiameter)
-print(pipe.headLossCorrelation(5000))
+print(pipe.correlation(5000))
+print(pipe.caracteristic(500, eau, "m3/h", "mCE"))
+print(dipole.correlation(2))
+print(pipe.calorificIntake())
 
-reynolds = [i for i in range(1,100000)]
-headLossCoefficient = [pipe.headLossCorrelation(i) for i in reynolds]
+# print(pipe.methodCaracteristic(500, eau, "m3/h", "mCE"))
 
-plt.plot(reynolds,headLossCoefficient)
-plt.show()
+# flowRate = [i/10 for i in range(1,20000)]
+# headLoss = [pipe.methodCaracteristic(q, eau, "m3/h", "mCE") for q in flowRate]
+
+# plt.plot(flowRate, headLoss)
+# plt.show()
