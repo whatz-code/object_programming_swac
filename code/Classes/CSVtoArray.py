@@ -8,7 +8,7 @@ import os.path as os
 def extraction(path) :
     if path[-3:] == 'csv':
         tableau = pd.read_csv(path)
-    if path[-4:] == 'xlsx' or path[-5:] == 'xlsxm' or path[-3:] == 'odt' :
+    if path[-4:] == 'xlsx' or path[-5:] == 'xlsxm' or path[-3:] == 'ods' :
         tableau = pd.read_excel(path)
     matrice = tableau.to_numpy()
     return matrice
@@ -17,7 +17,8 @@ def extraction(path) :
 
 
 
+#test
 
 
-
-path = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/InformationsClasses/AttributsClasses/Fluid/Fluid_v_0.csv'
+path = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/InformationsClasses/AttributsClasses/Exchanger/Exchanger_v_0.ods'
+print(extraction(path))

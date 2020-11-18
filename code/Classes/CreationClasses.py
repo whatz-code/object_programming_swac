@@ -12,23 +12,25 @@ def writeClass(pathToAttributes, pathToInitClass):
         fichier.write("def __init__(self")
         #écriture des arguments de la fonction __init__
         for row in attributes : 
-
-            L = len(row[1])
-            for iterate in range(L):
-                if row[1][iterate] == ",": #On remplace ici les , par des . pour lire les nombres en python 
-                    row[1] = row[1].replace(",",".")
-            if row[1].replace('.','').isdigit() :
-                fichier.write(","+row[0]+" = "+row[1])
-            else : 
-                if row[1]=="None" or row[1]=="none" or row[1]=="True" or row[1]=="true" or row[1]=="False" or row[1]=="false": #On traite les cas particuliers None, True, False
-                    if row[1]=="None" or row[1]=="none":
-                        fichier.write(","+row[0]+" = None")
-                    if row[1]=="True" or row[1]=="true":
-                        fichier.write(","+row[0]+" = True")
-                    if row[1]=="False" or row[1]=="false":
-                        fichier.write(","+row[0]+" = False")                    
-                else :
-                    fichier.write(","+row[0]+" = "+"'"+row[1]+"'")
+            if isinstance(row[1],str) : 
+                L = len(row[1])
+                for iterate in range(L):
+                    if row[1][iterate] == ",": #On remplace ici les , par des . pour lire les nombres en python 
+                        row[1] = row[1].replace(",",".")
+                if row[1].replace('.','').isdigit() :
+                    fichier.write(","+row[0]+" = "+row[1])
+                else : 
+                    if row[1]=="None" or row[1]=="none" or row[1]=="True" or row[1]=="true" or row[1]=="False" or row[1]=="false": #On traite les cas particuliers None, True, False
+                        if row[1]=="None" or row[1]=="none":
+                            fichier.write(","+row[0]+" = None")
+                        if row[1]=="True" or row[1]=="true":
+                            fichier.write(","+row[0]+" = True")
+                        if row[1]=="False" or row[1]=="false":
+                            fichier.write(","+row[0]+" = False")                    
+                    else :
+                        fichier.write(","+row[0]+" = "+"'"+row[1]+"'")
+            else :
+                fichier.write(","+row[0]+" = "+str(row[1]))
 
         fichier.write(") : \n")
         #initialisation des arguments de la fonction
@@ -61,6 +63,20 @@ writeClass(pathToAttributes,pathToInitClass)
 
 pathToAttributes = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/InformationsClasses/AttributsClasses/Dipole/Dipole_v_0.csv'
 pathToInitClass = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Dipole/InitDipole.py'
+
+writeClass(pathToAttributes,pathToInitClass)
+
+#creation de l'initialisation de la classe HeatExchanger
+
+pathToAttributes = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/InformationsClasses/AttributsClasses/Exchanger/Exchanger_v_0.ods'
+pathToInitClass = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Exchanger/InitHeatExchanger.py'
+
+writeClass(pathToAttributes,pathToInitClass)
+
+#creation de l'initialisation de la classe PlateExchanger
+
+pathToAttributes = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/InformationsClasses/AttributsClasses/Exchanger/PlateExchanger_v_0.ods'
+pathToInitClass = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Exchanger/InitPlateExchanger.py'
 
 writeClass(pathToAttributes,pathToInitClass)
 
