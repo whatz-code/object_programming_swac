@@ -76,6 +76,8 @@ class PlateExchanger(HeatExchanger):
     @length.setter 
     def length(self,length): 
         self.__length = length
+        self.hydraulicDipole1.length(length)
+        self.hydraulicDipole2.length(length)
 
     @property 
     def width(self): 
@@ -96,11 +98,11 @@ class PlateExchanger(HeatExchanger):
     @property 
     def passeNumber(self): 
         return self.__passeNumber
-
     @passeNumber.setter 
     def passeNumber(self,passeNumber): 
         self.__passeNumber = passeNumber
-
+        self.hydraulicDipole1.passeNumber(passeNumber)
+        self.hydraulicDipole2.passeNumber(passeNumber)
     @property 
     def plateThickness(self): 
         return self.__plateThickness
@@ -124,6 +126,8 @@ class PlateExchanger(HeatExchanger):
     @angle.setter 
     def angle(self,angle): 
         self.__angle = angle
+        self.hydraulicDipole1.angle(angle)
+        self.hydraulicDipole2.angle(angle)
 
     @property 
     def streakWaveLength(self): 
@@ -132,3 +136,18 @@ class PlateExchanger(HeatExchanger):
     @streakWaveLength.setter 
     def streakWaveLength(self,streakWaveLength): 
         self.__streakWaveLength = streakWaveLength
+    
+    def thermicTransfertCoefficient(self, reynoldsNumber, prandtlNumber, hydraulicDipole1 = None, hydraulicDipole2 = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09):
+        # determination du Nusselt du premier cotes
+        if hydraulicDipole1 == None :
+            hydraulicDipole1 = self.hydraulicDipole1
+        nusseltNumber1 = hydraulicDipole1.thermicCorrelation(reynoldsNumber, prandtlNumber, parameterA = parameterA, parameterB = parameterB, parameterC = parameterC)
+        
+
+        # determination du Nusselt du deuxieme cotes
+        if hydraulicDipole2 == None :
+            hydraulicDipole2 = self.HydraulicDipole2
+        nusseltNumber2 = hydraulicDipole2.thermicCorrelation(reynoldsNumber, prandtlNumber, parameterA = parameterA, parameterB = parameterB, parameterC = parameterC)
+
+        
+

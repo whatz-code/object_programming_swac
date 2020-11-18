@@ -49,13 +49,13 @@ class Dipole :
 
 
 
-    def correlation(self, reynolds) :
+    def hydraulicCorrelation(self, reynolds) :
         return "Don't defined"
 
     def caracteristic(self, flow, fluid) :
         return "Don't defined"
 
-    def calorificIntake(self, flow, fluid) :
+    def thermicCorrelation(self, flow, fluid) :
         return "Don't defined"
 
 
@@ -84,7 +84,7 @@ class Pipe(Dipole):
     def length(self,length): 
         self.__length = length
     
-    def correlation(self, reynoldsNumber, length = None, hydraulicDiameter = None, rugosity = None):
+    def hydraulicCorrelation(self, reynoldsNumber, length = None, hydraulicDiameter = None, rugosity = None):
 
         if length == None :
             length = self.length
@@ -92,7 +92,6 @@ class Pipe(Dipole):
             hydraulicDiameter = self.hydraulicDiameter
         if rugosity == None :
             rugosity = self.rugosity
-
         def laminar(reynoldsNumber):
             if reynoldsNumber > 0 :
                 return 64 / reynoldsNumber
@@ -120,10 +119,13 @@ class Pipe(Dipole):
 
                       
 class PlateHeatExchangerSide(Dipole):
-    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1) : 
+    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1, hydraulicCorrectingFactor = 1, thermicCorrectingFactor = 1) : 
         Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea)
         self.__angle = angle
         self.__length = length
+        self.__Npasse = Npasse
+        self.__hydraulicCorrectingFactor = hydraulicCorrectingFactor
+        self.__thermicCorrectingFactor = thermicCorrectingFactor
     
     @property 
     def angle(self): 
@@ -148,15 +150,34 @@ class PlateHeatExchangerSide(Dipole):
     @Npasse.setter 
     def Npasse(self,Npasse): 
         self.__Npasse = Npasse
+
+    @property 
+    def hydraulicCorrectingFactor(self): 
+        return self.__hydraulicCorrectingFactor
+
+    @Npasse.setter 
+    def hydraulicCorrectingFactor(self,Npasse): 
+        self.__hydraulicCorrectingFactor = hydraulicCorrectingFactor
+
+    @property 
+    def thermicCorrectingFactor(self): 
+        return self.__thermicCorrectingFactor
+
+    @Npasse.setter 
+    def hydraulicDiameter(self,Npasse): 
+        self.__thermicCorrectingFactor = thermicCorrectingFactor
     
-    def correlation(self, reynoldsNumber, length = None, angle = None, Npasse = None): #correspond à la correlation de Martin
+    def hydraulicCorrelation(self, reynoldsNumber, length = None, angle = None, Npasse = None, hydraulicDiameter = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09): #correspond à la hydraulicCorrelation de Martin
         if length == None:
             length = self.length
         if angle == None:
             angle = self.angle
         if Npasse == None:
             Npasse = self.Npasse
-        angle = angle * Pi / 180
+        if hydraulicDiameter == None:
+            hydraulicDiameter = self.hydraulicDiameter
+
+        angle = angle * pi / 180
         
         def laminar(reynoldsNumber, angle):
             if reynoldsNumber > 0 :
@@ -174,7 +195,7 @@ class PlateHeatExchangerSide(Dipole):
             return 1 / etape ** 2
 
         def etapeCalcul(angle, f0, f1):
-            return cos(angle) / (0.045 * tan(angle) + 0.09 * sin(angle) + f0 / cos(angle)) ** (1/2) + (1 - cos(angle)) / (3.8 * f1) ** (1/2)
+            return cos(angle) / (parameterB * tan(angle) + parameterC * sin(angle) + f0 / cos(angle)) ** (1/2) + (1 - cos(angle)) / (parameterA * f1) ** (1/2)
 
         if reynoldsNumber < 2000 :
             return laminar(reynoldsNumber) * length / hydraulicDiameter * Npasse
@@ -184,8 +205,31 @@ class PlateHeatExchangerSide(Dipole):
         else :
             return turbulent(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse
 
-    def caracteristic(self, flow, fluid = eau, flowRateUnity = "m3/s", pressureUnity = "Pa"):
-            return HydraulicThermicCalculus.caracteristic(self, flow, fluid, flowRateUnity, pressureUnity)
+    def caracteristic(self, flow, fluid = eau, flowRateUnity = "m3/s", pressureUnity = "Pa", hydraulicCorrectingFactor = None):
+        if hydraulicCorrectingFactor == None :
+            hydraulicCorrectingFactor = self.hydraulicCorrectingFactor
+
+        return HydraulicThermicCalculus.caracteristic(self, flow, fluid, flowRateUnity, pressureUnity) * hydraulicCorrectingFactor
+
+    def thermicCorrelation(self, reynoldsNumber, prandtlNumber, length = None, angle = None, Npasse = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09, thermicCorrectingFactor = None):
+        if angle == None:
+            angle = self.angle
+        if length == None:
+            length = self.length
+        if angle == None:
+            angle = self.angle
+        if Npasse == None:
+            Npasse = self.Npasse
+        if thermicCorrectingFactor == None:
+            thermicCorrectingFactor = self.thermicCorrectingFactor
+
+        headLossCoefficient = self.hydraulicCorrelation(reynoldsNumber, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09) / Npasse / length * angle
+        nusseltNumber = 0.122 * prandtlNumber ** (1/3) * (headLossCoefficient * reynoldsNumber ** 2 * sin(2 * angle) ) ** 0.374
+
+        return nusseltNumber * thermicCorrectingFactor
+
+        
+    
         
         
 
@@ -195,15 +239,11 @@ class PlateHeatExchangerSide(Dipole):
 eau = Fluid()
 dipole = Dipole()
 pipe = Pipe()
-def calorificIntake():
-    return None
-pipe.calorificIntake = calorificIntake
-print(pipe.rugosity)
-print(pipe.hydraulicDiameter)
-print(pipe.correlation(5000))
-print(pipe.caracteristic(500, eau, "m3/h", "mCE"))
-print(dipole.correlation(2))
-print(pipe.calorificIntake())
+plateHeatExchangerSide = PlateHeatExchangerSide(hydraulicDiameter=0.2, crossSectionalArea=0.5, angle = 45, length=1)
+headLossCoefficient = plateHeatExchangerSide.hydraulicCorrelation(5000)
+nusseltNumber = plateHeatExchangerSide.thermicCorrelation(5000,1)
+print(headLossCoefficient)
+print(nusseltNumber)
 
 # print(pipe.methodCaracteristic(500, eau, "m3/h", "mCE"))
 
