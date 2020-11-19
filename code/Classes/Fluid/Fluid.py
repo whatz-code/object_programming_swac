@@ -53,5 +53,4 @@ class Fluid:
 
 
 #test
-fluid = Fluid()
-print(fluid.thermicCapacity)
+fluid = Fluid('huile',1100,0.002,4152,0.7)

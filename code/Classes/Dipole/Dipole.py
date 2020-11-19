@@ -211,9 +211,9 @@ class PlateHeatExchangerSide(Dipole):
 
         return HydraulicThermicCalculus.caracteristic(self, flow, fluid, flowRateUnity, pressureUnity) * hydraulicCorrectingFactor
 
-    def thermicCorrelation(self, reynoldsNumber, prandtlNumber, length = None, angle = None, Npasse = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09, thermicCorrectingFactor = None):
+    def thermicCorrelation(self, reynoldsNumber, prandtlNumber, length = None, angle = None, Npasse = None, hydraulicDiameter = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09, thermicCorrectingFactor = None):
         if angle == None:
-            angle = self.angle
+            angle = self.angle 
         if length == None:
             length = self.length
         if angle == None:
@@ -222,8 +222,11 @@ class PlateHeatExchangerSide(Dipole):
             Npasse = self.Npasse
         if thermicCorrectingFactor == None:
             thermicCorrectingFactor = self.thermicCorrectingFactor
+        if hydraulicDiameter == None:
+            hydraulicDiameter = self.hydraulicDiameter
 
-        headLossCoefficient = self.hydraulicCorrelation(reynoldsNumber, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09) / Npasse / length * angle
+        headLossCoefficient = self.hydraulicCorrelation(reynoldsNumber, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09) / Npasse / length * hydraulicDiameter
+        angle *= pi / 180
         nusseltNumber = 0.122 * prandtlNumber ** (1/3) * (headLossCoefficient * reynoldsNumber ** 2 * sin(2 * angle) ) ** 0.374
 
         return nusseltNumber * thermicCorrectingFactor
@@ -242,8 +245,7 @@ pipe = Pipe()
 plateHeatExchangerSide = PlateHeatExchangerSide(hydraulicDiameter=0.2, crossSectionalArea=0.5, angle = 45, length=1)
 headLossCoefficient = plateHeatExchangerSide.hydraulicCorrelation(5000)
 nusseltNumber = plateHeatExchangerSide.thermicCorrelation(5000,1)
-print(headLossCoefficient)
-print(nusseltNumber)
+
 
 # print(pipe.methodCaracteristic(500, eau, "m3/h", "mCE"))
 

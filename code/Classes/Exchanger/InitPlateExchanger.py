@@ -1,5 +1,5 @@
 #l'initialisation de la classe : 
-def __init__(self,length = 2.5,width = 1.0,plateNumber = 385.0,passeNumber = 1.0,plateThickness = 0.5,plateGap = 3.0,angle = 45.0,streakWaveLength = None) : 
+def __init__(self,length = 2.5,width = 1.0,plateNumber = 385.0,passeNumber = 1.0,plateThickness = 0.5,plateGap = 3.0,angle = 45.0,streakWaveLength = 1.0) : 
    self.__length = length
    self.__width = width
    self.__plateNumber = plateNumber

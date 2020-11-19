@@ -81,4 +81,12 @@ pathToInitClass = '/home/raphael/Documents/Stage-application/Synthese-objet/Pyth
 writeClass(pathToAttributes,pathToInitClass)
 
 
+#creation de l'initialisation de la classe Flow
+
+pathToAttributes = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/InformationsClasses/AttributsClasses/Flow/Flow_v_0.ods'
+pathToInitClass = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Flow/InitFlow.py'
+
+writeClass(pathToAttributes,pathToInitClass)
+
+
 

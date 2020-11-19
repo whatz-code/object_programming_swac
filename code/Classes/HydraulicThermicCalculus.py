@@ -46,4 +46,3 @@ class HydraulicThermicCalculus :
 
 #tests
 reynolds = HydraulicThermicCalculus.reynolds(10,15,300,0.00001)
-print(reynolds)

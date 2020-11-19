@@ -58,5 +58,4 @@ X = [4, 1, 3, 5, 7, 2]
 Y = [12, 20, 40, 80, 12, 17]
 
 interpolationXY = DataAnalysis.interpolation(X,Y)
-print(interpolationXY(3.5))
 
