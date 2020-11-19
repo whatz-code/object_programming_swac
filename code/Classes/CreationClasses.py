@@ -88,5 +88,25 @@ pathToInitClass = '/home/raphael/Documents/Stage-application/Synthese-objet/Pyth
 
 writeClass(pathToAttributes,pathToInitClass)
 
+#creation de l'initialisation de la classe Flow
 
+pathToAttributes = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/InformationsClasses/AttributsClasses/Dipole/IdealPump_v_0.ods'
+pathToInitClass = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Dipole/InitIdealPump.py'
+
+writeClass(pathToAttributes,pathToInitClass)
+
+
+#creation de l'initialisation de la classe Flow
+
+pathToAttributes = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/InformationsClasses/AttributsClasses/Graphe/Graphe.ods'
+pathToInitClass = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Graphe/InitGraphe.py'
+
+writeClass(pathToAttributes,pathToInitClass)
+
+#creation de l'initialisation de la classe Flow
+
+pathToAttributes = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/InformationsClasses/AttributsClasses/Graphe/Node.ods'
+pathToInitClass = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Graphe/InitNode.py'
+
+writeClass(pathToAttributes,pathToInitClass)
 
