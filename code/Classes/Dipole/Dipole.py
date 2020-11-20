@@ -8,8 +8,10 @@ from math import tan
 import matplotlib.pyplot as plt
 import sys
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes")
+sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Flow")
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Fluid")
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Graphe")
+from Flow import Flow
 from Graphe import Edge, Node
 from Calculus import Resolve
 from HydraulicThermicCalculus import HydraulicThermicCalculus
@@ -18,7 +20,7 @@ eau = Fluid()
 
 class Dipole(Edge):
     #l'initialisation de la classe : 
-    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamPole = None, upstreamPole = None, flow = None) : 
+    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamPole = None, upstreamPole = None, flow = Flow(fixedVariables=[])) : 
         Edge.__init__(self, name, [downstreamPole, upstreamPole])
         self.__hydraulicDiameter = hydraulicDiameter
         self.__crossSectionalArea = crossSectionalArea
@@ -69,7 +71,7 @@ class Pipe(Dipole):
     
     #l'initialisation de la classe : 
 
-    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50, downstreamPole = None, upstreamPole = None, flow = None) : 
+    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50, downstreamPole = None, upstreamPole = None, flow = Flow(fixedVariables=[])) : 
         Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4, downstreamPole, upstreamPole, flow)
         self.__rugosity = rugosity
         self.__length = length
@@ -125,7 +127,7 @@ class Pipe(Dipole):
 
                       
 class PlateHeatExchangerSide(Dipole):
-    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1, hydraulicCorrectingFactor = 1, thermicCorrectingFactor = 1, downstreamPole = None, upstreamPole = None, flow = None) : 
+    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1, hydraulicCorrectingFactor = 1, thermicCorrectingFactor = 1, downstreamPole = None, upstreamPole = None, flow = Flow(fixedVariables=[])) : 
         Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow)
         self.__angle = angle
         self.__length = length
@@ -268,23 +270,17 @@ class PlateHeatExchangerSide(Dipole):
 class IdealPump(Dipole):
     #l'initialisation de la classe : 
     def __init__(self,name = None, hydraulicDiameter = None,crossSectionalArea = None ,flowRate = None, downstreamPole = None, upstreamPole = None) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole)
-        self.__flowRate = flowRate
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(flowRate = flowRate, fixedVariables=["flowRate"]))
 
-    @property 
-    def flowRate(self): 
-        return self.__flowRate
-
-    @flowRate.setter 
-    def flowRate(self,flowRate): 
-        self.__flowRate = flowRate
 
 
 class Pole(Node):
-    def __init__(self,name = None, pressure = None, successors = None) : 
+    def __init__(self,name = None, pressure = None, temperature = None, fluid = None, successors = None) : 
         Node.__init__(self, name = name, successors = successors)
         self.__pressure = pressure
-    
+        self.__temperature = temperature
+        self.__fluid = fluid
+
     @property 
     def pressure(self): 
         return self.__pressure
@@ -292,7 +288,22 @@ class Pole(Node):
     @pressure.setter 
     def pressure(self,pressure): 
         self.__pressure = pressure
+    
+    @property 
+    def temperature(self): 
+        return self.__temperature
 
+    @temperature.setter 
+    def temperature(self,temperature): 
+        self.__temperature = temperature
+
+    @property 
+    def fluid(self): 
+        return self.__fluid
+
+    @fluid.setter 
+    def fluid(self,fluid): 
+        self.__fluid = fluid
 
 #tests
 eau = Fluid()

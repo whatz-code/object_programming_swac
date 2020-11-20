@@ -245,6 +245,21 @@ class Graph:
         distancesToNode1, chemins, boucles = widthSearch(self, node1)
         distancesToNode2 = distancesToNode1[node2.id]
 
+    def voisins(self, node):
+        for edge in self.edges:
+            if edge.nodes[0] == node:
+                return [edge.nodes[1],-1]
+            if edge.nodes[1] == node:
+                return [edge.nodes[0],1]
+
+    def searchEdgesByNodes(self, Node):
+        edges = []
+        for edge in self.edges:
+            if edge.nodes[0] == node:
+                edges.append([edge,0])
+            if edge.nodes[1] == node:
+                edges.append([edge,1])
+
     
 
 

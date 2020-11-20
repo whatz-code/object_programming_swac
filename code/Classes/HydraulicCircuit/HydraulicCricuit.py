@@ -3,7 +3,7 @@ sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Dipole")
 from Dipole import Pipe, Dipole, PlateHeatExchangerSide, IdealPump, Pole
 from Graphe import Graph, Node, Edge, Queue
-
+from matplotlib import numpy as np
 class HydraulicCircuit(Graph):
     #l'initialisation de la classe : 
     def __init__(self,name = 'Hydraulic circuit',dipoles = [],poles = [],definedBy = 'edges') : 
@@ -36,7 +36,25 @@ class HydraulicCircuit(Graph):
     def poles(self,poles): 
         self.nodes = poles
 
-    def functionnement(self):
+    def hydraulicFunctionnement(self):
+        def functionToZero(self): #doit renvoyer la fonction à faire converger vers 0
+            def function(flowRates, pressures): #on définit les variables dans l'ordre de définition des dipôles (correspondant en fait à leur id)
+                equations = []
+                for node in self.nodes:
+                    edges = self.searchEdgesByNodes(node)
+                    equations.append(0)
+                    for edge in edges:
+                        dipole = edge[0]
+                        if edge[1] == 0:
+                            factor = -1
+                        else :
+                            factor = 1
+                        equations[-1] += factor * dipole.flow.flowRate
+                        
+
+                
+        for dipole in self.dipoles:
+
         
 #microtest
 pole1 = Pole('A',successors=[])

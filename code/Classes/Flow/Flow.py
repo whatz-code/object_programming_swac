@@ -1,11 +1,13 @@
 #l'initialisation de la classe : 
 class Flow:
-    def __init__(self,flowRate = None,pressure = None,temperature = None, fluid = None) : 
+    def __init__(self,flowRate = None, pressureDifference = None, inputTemperature = None, averageTemperature = None, outletTemperature = None, fixedVariables = []) : 
         self.__flowRate = flowRate
-        self.__pressure = pressure
-        self.__temperature = temperature
+        self.__pressureDifference = pressureDifference
+        self.__inputTemperature = inputTemperature
+        self.__averageTemperature = averageTemperature
+        self.__outletTemperature = outletTemperature
         self.__fluid = fluid
-
+        self.__fixedVaribales = fixedVariables
     @property 
     def flowRate(self): 
         return self.__flowRate
@@ -15,20 +17,36 @@ class Flow:
         self.__flowRate = flowRate
 
     @property 
-    def pressure(self): 
-        return self.__pressure
+    def pressureDifference(self): 
+        return self.__pressureDifference
 
-    @pressure.setter 
-    def pressure(self,pressure): 
-        self.__pressure = pressure
+    @pressureDifference.setter 
+    def pressureDifference(self,pressureDifference): 
+        self.__pressureDifference = pressureDifference
+    
+    @property 
+    def inputTemperature(self): 
+        return self.__inputTemperature
+
+    @inputTemperature.setter 
+    def inputTemperature(self,inputTemperature): 
+        self.__inputTemperature = inputTemperature
 
     @property 
-    def temperature(self): 
-        return self.__temperature
+    def averageTemperature(self): 
+        return self.__averageTemperature
 
-    @temperature.setter 
-    def temperature(self,temperature): 
-        self.__temperature = temperature
+    @averageTemperature.setter 
+    def averageTemperature(self,averageTemperature): 
+        self.__averageTemperature = averageTemperature
+
+    @property 
+    def outletTemperature(self): 
+        return self.__outletTemperature
+
+    @outletTemperature.setter 
+    def outletTemperature(self,outletTemperature): 
+        self.__outletTemperature = outletTemperature
 
     @property 
     def fluid(self): 
@@ -37,7 +55,21 @@ class Flow:
     @fluid.setter 
     def fluid(self,fluid): 
         self.__fluid = fluid
+    
+    @property 
+    def fixedVariables(self): 
+        return self.__fixedVariables
+
+    @fixedVariables.setter 
+    def fixedVariables(self,fixedVariables): 
+        self.__fixedVariables = fixedVariables
+    
+    def addFixedVariable(self, fixedVariable):
+        self.__fixedVariables.append(fixedVariable)
 
     def averageVelocity(self, dipole, flowRate = None):
         return flowRate / dipole.crossSectionnalArea
+
+
+    
     
