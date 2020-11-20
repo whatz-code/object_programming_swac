@@ -18,11 +18,12 @@ class Dipole :
 
      
     #l'initialisation de la classe : 
-    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None) : 
+    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamDipole = None, upstreamDipole = None) : 
         self.__name = name
         self.__hydraulicDiameter = hydraulicDiameter
         self.__crossSectionalArea = crossSectionalArea
-
+        self.__downstreamDipole = downstreamDipole
+        self.__upstreamDipole = upstreamDipole
     @property 
     def name(self): 
         return self.__name
@@ -46,6 +47,22 @@ class Dipole :
     @crossSectionalArea.setter 
     def crossSectionalArea(self,crossSectionalArea): 
         self.__crossSectionalArea = crossSectionalArea
+    
+    @property 
+    def downstreamDipole(self): 
+        return self.__downstreamDipole
+
+    @downstreamDipole.setter 
+    def downstreamDipole(self,downstreamDipole): 
+        self.__downstreamDipole = downstreamDipole
+    
+    @property 
+    def upstreamDipole(self): 
+        return self.__upstreamDipole
+
+    @upstreamDipole.setter 
+    def upstreamDipole(self,upstreamDipole): 
+        self.__upstreamDipole = upstreamDipole
 
 
 
@@ -63,8 +80,8 @@ class Pipe(Dipole):
     
     #l'initialisation de la classe : 
 
-    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50) : 
-        Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4)
+    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50, downstreamDipole = None, upstreamDipole = None) : 
+        Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4, downstreamDipole, upstreamDipole)
         self.__rugosity = rugosity
         self.__length = length
     
@@ -119,8 +136,8 @@ class Pipe(Dipole):
 
                       
 class PlateHeatExchangerSide(Dipole):
-    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1, hydraulicCorrectingFactor = 1, thermicCorrectingFactor = 1) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea)
+    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1, hydraulicCorrectingFactor = 1, thermicCorrectingFactor = 1, downstreamDipole = None, upstreamDipole = None) : 
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamDipole, upstreamDipole)
         self.__angle = angle
         self.__length = length
         self.__Npasse = Npasse
@@ -232,9 +249,10 @@ class PlateHeatExchangerSide(Dipole):
         return nusseltNumber * thermicCorrectingFactor
 
         
-class IdealPump:
+class IdealPump(Dipole):
     #l'initialisation de la classe : 
-    def __init__(self,flowRate = None) : 
+    def __init__(self,name = None, hydraulicDiameter = None,crossSectionalArea = None ,flowRate = None, downstreamDipole = None, upstreamDipole = None) : 
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamDipole, upstreamDipole)
         self.__flowRate = flowRate
 
     @property 
