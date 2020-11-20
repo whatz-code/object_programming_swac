@@ -9,21 +9,20 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes")
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Fluid")
+sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Graphe")
+from Graphe import Edge, Node
 from Calculus import Resolve
 from HydraulicThermicCalculus import HydraulicThermicCalculus
 from Fluid import Fluid
 eau = Fluid()
 
-class Dipole :
-
-     
+class Dipole(Edge):
     #l'initialisation de la classe : 
-    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamDipole = None, upstreamDipole = None) : 
-        self.__name = name
+    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamPole = None, upstreamPole = None, flow = None) : 
+        Edge.__init__(self, name, [downstreamPole, upstreamPole])
         self.__hydraulicDiameter = hydraulicDiameter
         self.__crossSectionalArea = crossSectionalArea
-        self.__downstreamDipole = downstreamDipole
-        self.__upstreamDipole = upstreamDipole
+        self.__flow = flow
     @property 
     def name(self): 
         return self.__name
@@ -49,22 +48,12 @@ class Dipole :
         self.__crossSectionalArea = crossSectionalArea
     
     @property 
-    def downstreamDipole(self): 
-        return self.__downstreamDipole
+    def flow(self): 
+        return self.__flow
 
-    @downstreamDipole.setter 
-    def downstreamDipole(self,downstreamDipole): 
-        self.__downstreamDipole = downstreamDipole
-    
-    @property 
-    def upstreamDipole(self): 
-        return self.__upstreamDipole
-
-    @upstreamDipole.setter 
-    def upstreamDipole(self,upstreamDipole): 
-        self.__upstreamDipole = upstreamDipole
-
-
+    @flow.setter 
+    def flow(self,flow): 
+        self.__flow = flow
 
     def hydraulicCorrelation(self, reynolds) :
         return "Don't defined"
@@ -80,8 +69,8 @@ class Pipe(Dipole):
     
     #l'initialisation de la classe : 
 
-    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50, downstreamDipole = None, upstreamDipole = None) : 
-        Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4, downstreamDipole, upstreamDipole)
+    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50, downstreamPole = None, upstreamPole = None, flow = None) : 
+        Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4, downstreamPole, upstreamPole, flow)
         self.__rugosity = rugosity
         self.__length = length
     
@@ -136,14 +125,30 @@ class Pipe(Dipole):
 
                       
 class PlateHeatExchangerSide(Dipole):
-    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1, hydraulicCorrectingFactor = 1, thermicCorrectingFactor = 1, downstreamDipole = None, upstreamDipole = None) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamDipole, upstreamDipole)
+    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1, hydraulicCorrectingFactor = 1, thermicCorrectingFactor = 1, downstreamPole = None, upstreamPole = None, flow = None) : 
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow)
         self.__angle = angle
         self.__length = length
         self.__Npasse = Npasse
         self.__hydraulicCorrectingFactor = hydraulicCorrectingFactor
         self.__thermicCorrectingFactor = thermicCorrectingFactor
     
+    @property      
+    def downstreamPole(self): 
+        return self.__downstreamPole
+
+    @downstreamPole.setter 
+    def downstreamPole(self,downstreamPole): 
+        self.__downstreamPole = downstreamPole
+    
+    @property 
+    def upstreamPole(self): 
+        return self.__upstreamPole
+
+    @upstreamPole.setter 
+    def upstreamPole(self,upstreamPole): 
+        self.__upstreamPole = upstreamPole
+
     @property 
     def angle(self): 
         return self.__angle
@@ -179,10 +184,21 @@ class PlateHeatExchangerSide(Dipole):
     @property 
     def thermicCorrectingFactor(self): 
         return self.__thermicCorrectingFactor
+    @property 
+    def downstreamPole(self): 
+        return self.__downstreamPole
 
-    @Npasse.setter 
-    def hydraulicDiameter(self,Npasse): 
-        self.__thermicCorrectingFactor = thermicCorrectingFactor
+    @downstreamPole.setter 
+    def downstreamPole(self,downstreamPole): 
+        self.__downstreamPole = downstreamPole
+    
+    @property 
+    def upstreamPole(self): 
+        return self.__upstreamPole
+
+    @upstreamPole.setter 
+    def upstreamPole(self,upstreamPole): 
+        self.__upstreamPole = upstreamPole
     
     def hydraulicCorrelation(self, reynoldsNumber, length = None, angle = None, Npasse = None, hydraulicDiameter = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09): #correspond à la hydraulicCorrelation de Martin
         if length == None:
@@ -251,8 +267,8 @@ class PlateHeatExchangerSide(Dipole):
         
 class IdealPump(Dipole):
     #l'initialisation de la classe : 
-    def __init__(self,name = None, hydraulicDiameter = None,crossSectionalArea = None ,flowRate = None, downstreamDipole = None, upstreamDipole = None) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamDipole, upstreamDipole)
+    def __init__(self,name = None, hydraulicDiameter = None,crossSectionalArea = None ,flowRate = None, downstreamPole = None, upstreamPole = None) : 
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole)
         self.__flowRate = flowRate
 
     @property 
@@ -264,9 +280,18 @@ class IdealPump(Dipole):
         self.__flowRate = flowRate
 
 
-        
-        
+class Pole(Node):
+    def __init__(self,name = None, pressure = None, successors = None) : 
+        Node.__init__(self, name = name, successors = successors)
+        self.__pressure = pressure
+    
+    @property 
+    def pressure(self): 
+        return self.__pressure
 
+    @pressure.setter 
+    def pressure(self,pressure): 
+        self.__pressure = pressure
 
 
 #tests

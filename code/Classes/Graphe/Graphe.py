@@ -10,9 +10,17 @@ class Graph:
             edges = []
             for node in nodes:
                 for successor in node.successors:
-                    edges.append(Edge([node, successor]))
+                    edges.append(Edge(nodes = [node, successor]))
+            i = 0
+            for edge in edges:
+                edge.id = i
+                i += 1
             
         if definedBy == "edges":
+            i = 0
+            for edge in edges:
+                edge.id = i
+                i += 1
             nodes = []
             for edge in edges:
                 for node in edge.nodes:
@@ -32,19 +40,163 @@ class Graph:
 
     @nodes.setter 
     def nodes(self,nodes): 
+        i = 0
+        for node in nodes:
+            node.id = i
+            i += 1
+        edges = []
+        for node in nodes:
+            for successor in node.successors:
+                edges.append(Edge(nodes = [node, successor]))
+        i = 0
+        for edge in edges:
+            edge.id = i
+            i += 1
         self.__nodes = nodes
+        self.__edges = edges
 
     @property 
     def edges(self): 
         return self.__edges
 
     @edges.setter 
-    def edges(self,edges): 
+    def edges(self,edges):
+        i = 0
+        for edge in edges:
+            edge.id = i
+            i += 1
+        nodes = []
+        for edge in edges:
+            for node in edge.nodes:
+                if not(node in nodes):
+                    nodes.append(node)
+        i = 0
+        for node in nodes:
+            node.id = i
+            i += 1
         self.__edges = edges
+        self.__nodes = nodes
 
     def appendNode(self,node):
         node.id = len(self.nodes)
         self.nodes.append(node)
+        for node1 in node.successors:
+            self.newEdge(node, node1)
+
+    def newEdge(self, node1, node2, name = None):
+        edge = Edge(name, nodes = [node1, node2])
+        edge.id = len(self.edges)
+        self.edges.append(edge)
+    def delNode(self, var, by = 'id', delEdge = True):
+        N = len(self.nodes)
+        if by == 'id':
+            for node in self.nodes:
+                node.delSuccessor(var, by = 'id')
+            if delEdge :
+                for edge in self.edges:
+                    if edge.nodes[0].id == var or edge.nodes[1].id == var :
+                        self.delEdge(edge, 'edge', delNode = False)
+            suppr = False
+            for j in range(N):
+                if suppr == True:
+                    if j < N:
+                        self.nodes[j-1].id -= 1
+                if j < N-1:
+                    if self.nodes[j].id == var:
+                        del self.__nodes[j]
+                        suppr = True
+        if by == 'name':
+            for node in self.nodes:
+                node.delSuccessor(var, by = 'name')
+            if delEdge :
+                for edge in self.edges:
+                    if edge.nodes[0].name == var or edge.nodes[1].name == var :
+                        self.delEdge(edge, 'edge', delNode = False)
+            suppr = False
+            for j in range(N):
+                if suppr == True:
+                    if j < N:
+                        self.nodes[j-1].id -= 1
+                if j < N-1:
+                    if self.nodes[j].name == var:
+                        del self.__nodes[j]
+                        suppr = True
+        if by == 'node':
+            for node in self.nodes:
+                node.delSuccessor(var, by = 'node')
+            if delEdge :
+                for edge in self.edges:
+                    if edge.nodes[0] == var or edge.nodes[1] == var :
+                        self.delEdge(edge, 'edge', delNode = False)
+            suppr = False
+            for j in range(N):
+                if suppr == True:
+                    if j < N:
+                        self.nodes[j-1].id -= 1
+                if j < N-1:
+                    if self.nodes[j] == var:
+                        del self.__nodes[j]
+                        suppr = True
+    def delEdge(self, var, by = 'id', delNode = True):
+        N = len(self.edges)
+        if by == 'id':
+            if delNode :
+                for edge in self.edges:
+                    if edge.id == var :
+                        self.delNode(edge.nodes[0].id, delEdge = False)
+                        self.delNode(edge.nodes[1].id, delEdge = False)
+            suppr = False
+            for j in range(N):
+                if suppr == True:
+                    if j < N:
+                        self.edges[j-1].id -= 1
+                if j < N-1:
+                    if self.edges[j].id == var:
+                        del self.__edges[j]
+                        suppr = True
+        if by == 'name':
+            if delNode : 
+                for edge in self.edges:
+                    if edge.name == var :
+                        self.delNode(edge.nodes[0].id, delEdge = False)
+                        self.delNode(edge.nodes[1].id, delEdge = False)
+            suppr = False
+            for j in range(N):
+                if suppr == True:
+                    if j < N:
+                        self.edges[j-1].id -= 1
+                if j < N-1:
+                    if self.edges[j].name == var:
+                        del self.__edges[j]
+                        suppr = True
+        if by == 'edge':
+            if delNode : 
+                for edge in self.edges:
+                    if edge == var :
+                        self.delNode(edge.nodes[0].id, delEdge = False)
+                        self.delNode(edge.nodes[1].id, delEdge = False)
+            suppr = False
+            for j in range(N):
+                if suppr == True:
+                    if j < N:
+                        self.edges[j-1].id -= 1
+                if j < N-1:
+                    if self.edges[j] == var:
+                        del self.__edges[j]
+                        suppr = True
+
+
+    def print(self, by = 'id'):
+        Nodeids = []
+        Edgeids = []
+        for node in self.nodes:
+            Nodeids.append(node.id)
+        for edge in self.edges:
+            Edgeids.append(edge.id)
+        print('Nodes id')
+        print(Nodeids)
+        print('Edge id')
+        print(Edgeids)
 
     def adjencyMatrix(self):
         N = len(self.nodes)
@@ -83,7 +235,6 @@ class Graph:
         distance[node.id].append(0) #permet d'assigner à chaque noeud sa distance au noeud d'origine
         chemins[node.id].append([node.id])
         while queue.emptyQueue() == False:
-            print(queue.queue)
             id0 = queue.remove()
             toNotFollow = id0
             node = self.nodes[id0]
@@ -117,7 +268,6 @@ class Node:
     @property 
     def id(self): 
         return self.__id
-
     @id.setter 
     def id(self,id): 
         self.__id = id
@@ -130,12 +280,28 @@ class Node:
     def successors(self,successors): 
         self.__successors = successors
 
+    def delSuccessor(self, var, by = 'id'):
+        N = len(self.successors)
+        if by == 'id':
+            for j in range(N):
+                if j < N-1:
+                    if self.successors[j].id == var:
+                        del self.__successors[j]
+        if by == 'name':
+            for j in range(N):
+                if j < N-1:
+                    if self.successors[j].name == var:
+                        del self.__successors[j]
+        if by == 'node':
+                for j in range(N):
+                    if j < N-1:
+                        if self.successors[j] == var:
+                            del self.__successors[j]
+
 class Edge:
-    def __init__(self, nodes = None, objectToEdge = None):
-        if len(nodes) == 2:
-            self.__nodes = nodes
-        self.__objectToEdge = objectToEdge
-    
+    def __init__(self, name = None, nodes = None, id = 0):
+        self.__nodes = nodes
+        self.__id = id
     @property 
     def nodes(self): 
         return self.__nodes
@@ -143,14 +309,23 @@ class Edge:
     @nodes.setter 
     def nodes(self,nodes): 
         self.__nodes = nodes
-
+    
     @property 
-    def objectToEdge(self): 
-        return self.__objectToEdge
+    def name(self): 
+        return self.__name
 
-    @objectToEdge.setter 
-    def objectToEdge(self,objectToEdge): 
-        self.__objectToEdge = objectToEdge
+    @name.setter 
+    def name(self,name): 
+        self.__name = name
+    
+    @property 
+    def id(self): 
+        return self.__id
+
+    @id.setter 
+    def id(self,id): 
+        self.__id = id
+
 
 
 class Queue:
@@ -182,7 +357,7 @@ class Queue:
 # node4 = Node(name = "node4")
 # node1.successors = [node2,node4]         
 # node2.successors = [node1,node3]
-# node3.successors = [node2,node4]
+# node3.successors = [node                for edge in self.edges:
 # node4.successors = [node1,node3]
 # graphNonOriente = Graph([node1,node2,node3,node4])
 # adjacenceMatrix = graphNonOriente.adjencyMatrix()
@@ -203,6 +378,18 @@ node6o.successors = [node3o]
 graphOriente = Graph([node1o,node2o,node3o,node4o,node5o,node6o])
 adjacenceMatrix = graphOriente.adjencyMatrix()
 distancenode1Oriente, cheminsOriente, bouclesOriente = graphOriente.widthSearch(node1o)
+L = [node1o.id, node2o.id, node3o.id, node4o.id, node5o.id, node6o.id]
+graphOriente.print()
+print(L)
+graphOriente.delNode(3)
+graphOriente.print()
+print(L)
+node3o = Node(name = "node3o")
+node3o.successors = [node4o]
+graphOriente.appendNode(node3o)
+graphOriente.print()
+print(L)
+
 
 # print(adjacenceMatrix)
 # print(distancenode1Oriente)

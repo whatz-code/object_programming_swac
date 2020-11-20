@@ -110,3 +110,10 @@ pathToInitClass = '/home/raphael/Documents/Stage-application/Synthese-objet/Pyth
 
 writeClass(pathToAttributes,pathToInitClass)
 
+
+#creation de l'initialisation de la classe Reseau hydraulique
+
+pathToAttributes = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/InformationsClasses/AttributsClasses/HydraulicCircuit/HydraulicCircuit_v_0.ods'
+pathToInitClass = '/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/HydraulicCircuit/InitHydraulicCircuit.py'
+
+writeClass(pathToAttributes,pathToInitClass)
