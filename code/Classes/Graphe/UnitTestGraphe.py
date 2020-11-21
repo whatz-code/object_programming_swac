@@ -46,7 +46,59 @@ class TestNode(unittest.TestCase):
     
 
 
+class TestEdge(unittest.TestCase):
+    def setUp(self):
+        self.node1 = Node(name = "node1")
+        self.node2 = Node(name = "node2")
+        print(type(self.node1))
+        self.defaultEdge = Edge(nodes = [self.node1, self.node2])
+        self.edge = Edge(name = 1,id = 1,nodes = [self.node1, self.node2])
+
+
+    def test_init(self):
+        with self.assertRaises(TypeError):
+            self.initTest = Edge(id = 0.1)
+            self.initTest = Edge(nodes=1)
+            self.initTest = Edge(nodes=[1,2])
+
+        with self.assertRaises(ValueError):
+            self.initTest = Edge(nodes=[1])
+            self.initTest = Edge(nodes=[self.node1])
+            self.initTest = Edge(id = -1)
+        self.assertEqual(self.defaultEdge.nodes[0].successors, [self.node2])
+        self.assertEqual(self.defaultEdge.nodes[1].successors, [])
+            
+
+    def test_getter(self):
+        self.assertEqual(self.defaultEdge.name, None)
+        self.assertEqual(self.edge.name, 1)
+
+        self.assertEqual(self.defaultEdge.id, 0)
+        self.assertEqual(self.edge.id, 1)
+
+        self.assertEqual(self.defaultEdge.nodes, [self.node1, self.node2])
+        self.assertEqual(self.edge.nodes, [self.node1, self.node2])
+    
+    def test_setter(self):
+        self.node3 = Node(name = "node3")
+        self.defaultEdge.name = 1.0
+        self.defaultEdge.id = 1
+        self.defaultEdge.nodes = [self.node1, self.node3]
+
+        self.assertEqual(self.defaultEdge.name, 1.0)
+        self.assertEqual(self.defaultEdge.id, 1)
+        self.assertEqual(self.defaultEdge.nodes[0].successors, [self.node3])
+        self.assertEqual(self.defaultEdge.nodes[1].successors, [])
+
         
+        with self.assertRaises(TypeError):
+            self.defaultEdge.id = 1.0
+            self.defaultEdge.nodes = 1
+            self.defaultEdge.nodes = [1,2]
+        with self.assertRaises(ValueError):
+            self.defaultEdge.id = -1
+            self.defaultEdge.nodes = [1]
+            self.defaultEdge.nodes = [self.node2]
 
 
 

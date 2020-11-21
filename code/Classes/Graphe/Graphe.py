@@ -321,6 +321,12 @@ class Node:
         else :
             raise TypeError("successors must be a list of nodes")
 
+    def addSuccessor(self, node):
+        if type(node) is Node:
+            self.successors.append(node)
+        else :
+            TypeError("successor must be a node")
+
     def delSuccessor(self, var, by = 'id'):
         N = len(self.successors)
         if by == 'id':
@@ -341,15 +347,45 @@ class Node:
 
 class Edge:
     def __init__(self, name = None, nodes = None, id = 0):
-        self.__nodes = nodes
-        self.__id = id
+        self.__name = name
+        node = Node()
+        if type(nodes) is type([]):
+            if len(nodes) == 2:
+                for node in nodes:
+                    if type(node) is not type(node):
+                        raise TypeError("nodes must be a list of 2 objects node")
+                nodes[0].addSuccessor(nodes[1])
+                self.__nodes = nodes
+            else : 
+                raise ValueError("nodes must be a list of 2 objects node")
+        else:
+            raise TypeError("nodes must be a list of 2 objects node")
+        
+        if type(id) is type(1):
+            if id >= 0:
+                self.__id = id
+            else :
+                raise ValueError("id must be a positive integer")
+        else :
+            raise TypeError("id must be a positive integer")
+
     @property 
     def nodes(self): 
         return self.__nodes
-
-    @nodes.setter 
+    @nodes.setter
     def nodes(self,nodes): 
-        self.__nodes = nodes
+        node = Node()
+        if type(nodes) is type([]):
+            if len(nodes) == 2:
+                for node in nodes:
+                    if type(node) is not type(node):
+                        raise TypeError("nodes must be a list of 2 objects node")
+                nodes[0].addSuccessor(nodes[1])
+                self.__nodes = nodes
+            else : 
+                raise ValueError("nodes must be a list of 2 objects node")
+        else:
+            raise TypeError("nodes must be a list of 2 objects node")
     
     @property 
     def name(self): 
@@ -365,7 +401,13 @@ class Edge:
 
     @id.setter 
     def id(self,id): 
-        self.__id = id
+        if type(id) is type(1):
+            if id >= 0:
+                self.__id = id
+            else :
+                raise ValueError("id must be a positive integer")
+        else :
+            raise TypeError("id must be a positive integer")
 
 
 
@@ -404,32 +446,32 @@ class Queue:
 # adjacenceMatrix = graphNonOriente.adjencyMatrix()
 # distancenode1NonOriente, cheminsNonOriente = graphNonOriente.widthSearch(node1)
 
-node1o = Node(name = "node1o")
-node2o = Node(name = "node2o")
-node3o = Node(name = "node3o")
-node4o = Node(name = "node4o")
-node5o = Node(name = "node5o")
-node6o = Node(name = "node6o")
-node1o.successors = [node2o]         
-node2o.successors = [node3o, node5o]
-node3o.successors = [node4o]
-node4o.successors = [node1o]
-node5o.successors = [node6o]
-node6o.successors = [node3o]
-graphOriente = Graph([node1o,node2o,node3o,node4o,node5o,node6o])
-adjacenceMatrix = graphOriente.adjencyMatrix()
-distancenode1Oriente, cheminsOriente, bouclesOriente = graphOriente.widthSearch(node1o)
-L = [node1o.id, node2o.id, node3o.id, node4o.id, node5o.id, node6o.id]
-graphOriente.print()
-print(L)
-graphOriente.delNode(3)
-graphOriente.print()
-print(L)
-node3o = Node(name = "node3o")
-node3o.successors = [node4o]
-graphOriente.appendNode(node3o)
-graphOriente.print()
-print(L)
+# node1o = Node(name = "node1o")
+# node2o = Node(name = "node2o")
+# node3o = Node(name = "node3o")
+# node4o = Node(name = "node4o")
+# node5o = Node(name = "node5o")
+# node6o = Node(name = "node6o")
+# node1o.successors = [node2o]         
+# node2o.successors = [node3o, node5o]
+# node3o.successors = [node4o]
+# node4o.successors = [node1o]
+# node5o.successors = [node6o]
+# node6o.successors = [node3o]
+# graphOriente = Graph([node1o,node2o,node3o,node4o,node5o,node6o])
+# adjacenceMatrix = graphOriente.adjencyMatrix()
+# distancenode1Oriente, cheminsOriente, bouclesOriente = graphOriente.widthSearch(node1o)
+# L = [node1o.id, node2o.id, node3o.id, node4o.id, node5o.id, node6o.id]
+# graphOriente.print()
+# print(L)
+# graphOriente.delNode(3)
+# graphOriente.print()
+# print(L)
+# node3o = Node(name = "node3o")
+# node3o.successors = [node4o]
+# graphOriente.appendNode(node3o)
+# graphOriente.print()
+# print(L)
 
 
 # print(adjacenceMatrix)
