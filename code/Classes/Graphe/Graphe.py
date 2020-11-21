@@ -267,10 +267,23 @@ class Graph:
 
 class Node:
     #l'initialisation de la classe : 
-    def __init__(self, name = None, id = 0, successors = None): 
+    def __init__(self, name = None, id = 0, successors = []): 
         self.__name = name
-        self.__id = id
-        self.__successors = successors
+        if type(id) is type(1):
+            if id >= 0:
+                self.__id = id
+            else :
+                raise ValueError("id must be a positive integer")
+        else :
+            raise TypeError("id must be a positive integer")
+        
+        if type(successors) is type([]):
+            for successor in successors :
+                if type(successor) is not Node :
+                    raise TypeError("successors must be a list of nodes")
+            self.__successors = successors
+        else :
+            raise TypeError("successors must be a list of nodes")
 
     @property 
     def name(self): 
@@ -285,7 +298,13 @@ class Node:
         return self.__id
     @id.setter 
     def id(self,id): 
-        self.__id = id
+        if type(id) is type(1):
+            if id >= 0:
+                self.__id = id
+            else :
+                raise ValueError("id must be a positive integer")
+        else :
+            raise TypeError("id must be a positive integer")
 
     @property 
     def successors(self): 
@@ -293,7 +312,14 @@ class Node:
 
     @successors.setter 
     def successors(self,successors): 
-        self.__successors = successors
+        if type(successors) is type([]):
+            node = Node()
+            for successor in successors :
+                if type(successor) is not type(node) :
+                    raise TypeError("successors must be a list of nodes")
+                self.__successors = successors
+        else :
+            raise TypeError("successors must be a list of nodes")
 
     def delSuccessor(self, var, by = 'id'):
         N = len(self.successors)

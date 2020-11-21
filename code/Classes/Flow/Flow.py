@@ -1,20 +1,51 @@
-#l'initialisation de la classe : 
+import sys
+sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Fluid")
+from Fluid import Fluid
+
 class Flow:
-    def __init__(self,flowRate = None, pressureDifference = None, inputTemperature = None, averageTemperature = None, outletTemperature = None, fixedVariables = []) : 
-        self.__flowRate = flowRate
-        self.__pressureDifference = pressureDifference
-        self.__inputTemperature = inputTemperature
-        self.__averageTemperature = averageTemperature
-        self.__outletTemperature = outletTemperature
-        self.__fluid = fluid
-        self.__fixedVaribales = fixedVariables
+    def __init__(self,flowRate = None, pressureDifference = None, inputTemperature = None, averageTemperature = None, outletTemperature = None, fluid = Fluid()) : 
+        
+        if type(flowRate) is float or type(flowRate) is type(None):
+            self.__flowRate = flowRate
+        else :
+            raise TypeError("the flow rate must be a float or a none type")
+
+        if type(pressureDifference) is float or type(pressureDifference) is type(None):
+            self.__pressureDifference = pressureDifference
+        else :
+            raise TypeError("the pressure difference must be a float or a none type")
+
+        if type(inputTemperature) is float or type(inputTemperature) is type(None):
+            self.__inputTemperature = inputTemperature
+        else :
+            raise TypeError("the input temperature must be a float or a none type")
+
+        if type(averageTemperature) is float or type(averageTemperature) is type(None):
+            self.__averageTemperature = averageTemperature
+        else :
+            raise TypeError("the average temperature must be a float or a none type")
+
+        if type(outletTemperature) is float or type(outletTemperature) is type(None):
+            self.__outletTemperature = outletTemperature
+        else :
+            raise TypeError("the outlet temperature must be a float or a none type")
+        
+        eau = Fluid()
+        if type(fluid) is type(eau):
+            self.__fluid = fluid
+        else :
+            raise TypeError("the fluid must be a fluid object")
+
     @property 
     def flowRate(self): 
         return self.__flowRate
 
     @flowRate.setter 
     def flowRate(self,flowRate): 
-        self.__flowRate = flowRate
+        if type(flowRate) is float or type(flowRate) is type(None):
+            self.__flowRate = flowRate
+        else :
+            raise TypeError("the flow rate must be a float or a none type")
 
     @property 
     def pressureDifference(self): 
@@ -22,15 +53,21 @@ class Flow:
 
     @pressureDifference.setter 
     def pressureDifference(self,pressureDifference): 
-        self.__pressureDifference = pressureDifference
-    
+        if type(pressureDifference) is float or type(pressureDifference) is type(None):
+            self.__pressureDifference = pressureDifference
+        else :
+            raise TypeError("the pressure difference must be a float or a none type")
+
     @property 
     def inputTemperature(self): 
         return self.__inputTemperature
 
     @inputTemperature.setter 
     def inputTemperature(self,inputTemperature): 
-        self.__inputTemperature = inputTemperature
+        if type(inputTemperature) is float or type(inputTemperature) is type(None):
+            self.__inputTemperature = inputTemperature
+        else :
+            raise TypeError("the input temperature must be a float or a none type")
 
     @property 
     def averageTemperature(self): 
@@ -38,7 +75,10 @@ class Flow:
 
     @averageTemperature.setter 
     def averageTemperature(self,averageTemperature): 
-        self.__averageTemperature = averageTemperature
+        if type(averageTemperature) is float or type(averageTemperature) is type(None):
+            self.__averageTemperature = averageTemperature
+        else :
+            raise TypeError("the average temperature must be a float or a none type")
 
     @property 
     def outletTemperature(self): 
@@ -46,7 +86,10 @@ class Flow:
 
     @outletTemperature.setter 
     def outletTemperature(self,outletTemperature): 
-        self.__outletTemperature = outletTemperature
+        if type(outletTemperature) is float or type(outletTemperature) is type(None):
+            self.__outletTemperature = outletTemperature
+        else :
+            raise TypeError("the outlet temperature must be a float or a none type")
 
     @property 
     def fluid(self): 
@@ -54,18 +97,11 @@ class Flow:
 
     @fluid.setter 
     def fluid(self,fluid): 
-        self.__fluid = fluid
-    
-    @property 
-    def fixedVariables(self): 
-        return self.__fixedVariables
-
-    @fixedVariables.setter 
-    def fixedVariables(self,fixedVariables): 
-        self.__fixedVariables = fixedVariables
-    
-    def addFixedVariable(self, fixedVariable):
-        self.__fixedVariables.append(fixedVariable)
+        eau = Fluid()
+        if type(fluid) is type(eau):
+            self.__fluid = fluid
+        else :
+            raise TypeError("the fluid must be a fluid object")
 
     def averageVelocity(self, dipole, flowRate = None):
         return flowRate / dipole.crossSectionnalArea
