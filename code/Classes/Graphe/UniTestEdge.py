@@ -5,6 +5,9 @@ from Graphe import Graph, Node, Edge
 class TestEdge(unittest.TestCase):
 
     def test_init(self):
+        node1 = Node(name = "node1",id = 0,successors=[])
+        node2 = Node(name = "node2")
+        node3 = Node()
         with self.assertRaises(TypeError):
             initTest = Edge(id = 0.1)
             initTest = Edge(nodes=1)
@@ -12,21 +15,25 @@ class TestEdge(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             initTest = Edge(nodes=[1])
-            initTest = Edge(nodes=[self.node1])
+            initTest = Edge(nodes=[node1])
             initTest = Edge(id = -1)
-        self.assertEqual(default.nodes[0].successors, [self.node2])
-        self.assertEqual(default.nodes[1].successors, [])
             
 
     def test_getter(self):
-        self.assertEqual(self.default.name, None)
-        self.assertEqual(self.edge.name, 1)
+        node1 = Node(name = "node1",id = 0,successors=[])
+        node2 = Node(name = "node2")
+        node3 = Node()
+        default = Edge(nodes = [node1, node2])
+        edge = Edge(name = 1, id = 1, nodes = [node1, node3])
 
-        self.assertEqual(self.default.id, 0)
-        self.assertEqual(self.edge.id, 1)
+        self.assertEqual(default.name, None)
+        self.assertEqual(edge.name, 1)
 
-        self.assertEqual(self.default.nodes, [self.node1, self.node2])
-        self.assertEqual(self.edge.nodes, [self.node1, self.node2])
+        self.assertEqual(default.id, 0)
+        self.assertEqual(edge.id, 1)
+
+        self.assertEqual(default.nodes, [node1, node2])
+        self.assertEqual(edge.nodes, [node1, node3])
     
     def test_setter(self):
         node1 = Node(name = "node1",id = 0,successors=[])
@@ -52,7 +59,7 @@ class TestEdge(unittest.TestCase):
         with self.assertRaises(ValueError):
             default.id = -1
             default.nodes = [1]
-            default.nodes = [self.node2]
+            default.nodes = [node2]
             edge = Edge(nodes = [node1, node3])
 
 

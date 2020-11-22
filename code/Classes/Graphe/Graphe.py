@@ -340,10 +340,7 @@ class Node:
                     if self.successors[j].name == var:
                         del self.__successors[j]
         if by == 'node':
-                for j in range(N):
-                    if j < N-1:
-                        if self.successors[j] == var:
-                            del self.__successors[j]
+                self.__successors.remove(var)
 
 class Edge:
     def __init__(self, name = None, nodes = None, id = 0):
@@ -387,10 +384,7 @@ class Edge:
                 if nodes[1] in nodes[0].successors:
                     raise ValueError("it can only be one edge for 2 nodes")
                 else :
-                    print(self.nodes[0].successors)
-                    print(self.nodes[1])
-                    self.nodes[0].delSuccessor(self.nodes[1], by = 'nodes')
-                    print(self.nodes[0].successors)
+                    self.nodes[0].delSuccessor(self.nodes[1], by = 'node')
                     nodes[0].addSuccessor(nodes[1])
                     self.__nodes = nodes
             else : 
