@@ -277,14 +277,13 @@ class Node:
         else :
             raise TypeError("id must be a positive integer")
         
-        if type(successors) is type([]):
+        if type(successors) is list:
             for successor in successors :
                 if type(successor) is not Node :
                     raise TypeError("successors must be a list of nodes")
             self.__successors = successors
         else :
             raise TypeError("successors must be a list of nodes")
-
     @property 
     def name(self): 
         return self.__name
@@ -313,19 +312,20 @@ class Node:
     @successors.setter 
     def successors(self,successors): 
         if type(successors) is type([]):
-            node = Node()
             for successor in successors :
-                if type(successor) is not type(node) :
+                if type(successor) is not Node :
                     raise TypeError("successors must be a list of nodes")
-                self.__successors = successors
+            self.__successors = successors
         else :
             raise TypeError("successors must be a list of nodes")
 
-    def addSuccessor(self, node):
-        if type(node) is Node:
-            self.successors.append(node)
-        else :
-            TypeError("successor must be a node")
+    def addSuccessor(self, *nodes):
+        for node in nodes:
+            if type(node) is Node:
+                if node not in self.__successors:
+                    self.__successors.append(node)
+            else :
+                raise TypeError("successor must be a node")
 
     def delSuccessor(self, var, by = 'id'):
         N = len(self.successors)
@@ -354,10 +354,14 @@ class Edge:
                 for node in nodes:
                     if type(node) is not type(node):
                         raise TypeError("nodes must be a list of 2 objects node")
-                nodes[0].addSuccessor(nodes[1])
+                if nodes[1] in nodes[0].successors:
+                    raise ValueError("it can only be one edge for 2 nodes")
+                else :
+                    nodes[0].addSuccessor(nodes[1])
                 self.__nodes = nodes
             else : 
                 raise ValueError("nodes must be a list of 2 objects node")
+
         else:
             raise TypeError("nodes must be a list of 2 objects node")
         
@@ -380,8 +384,15 @@ class Edge:
                 for node in nodes:
                     if type(node) is not type(node):
                         raise TypeError("nodes must be a list of 2 objects node")
-                nodes[0].addSuccessor(nodes[1])
-                self.__nodes = nodes
+                if nodes[1] in nodes[0].successors:
+                    raise ValueError("it can only be one edge for 2 nodes")
+                else :
+                    print(self.nodes[0].successors)
+                    print(self.nodes[1])
+                    self.nodes[0].delSuccessor(self.nodes[1], by = 'nodes')
+                    print(self.nodes[0].successors)
+                    nodes[0].addSuccessor(nodes[1])
+                    self.__nodes = nodes
             else : 
                 raise ValueError("nodes must be a list of 2 objects node")
         else:
