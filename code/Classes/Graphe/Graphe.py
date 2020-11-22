@@ -30,7 +30,7 @@ class Graph:
         for node in nodes:
             for successor in node.successors:
                 if successor not in nodes:
-                    nodes.append(successor)
+                    node.delSuccessor(successor, by = 'node')
         for edge in edges:
             for node in edge.nodes:
                     nodes.append(node)
@@ -97,7 +97,7 @@ class Graph:
         for edge in edges :
             if type(edge) is not Edge:
                 raise TypeError("edges must be a list of edges")
-
+        
         nodes = []
         for edge in edges:
             for node in edge.nodes:
@@ -106,7 +106,7 @@ class Graph:
         for node in nodes:
             for successor in node.successors:
                 if successor not in nodes:
-                    nodes.append(successor)
+                    node.delSuccessor(successor, by = 'node')
         for node in nodes:
             for successor in node.successors:
                 newEdge = True
@@ -245,6 +245,7 @@ class Graph:
 
     def print(self):
         Nodeids = []
+        NodeSuccessors = []
         Edgeids = []
         NodeNames = []
         EdgeNames = []
@@ -252,6 +253,11 @@ class Graph:
         for node in self.nodes:
             Nodeids.append(node.id)
             NodeNames.append(node.name)
+            Successors = []
+            for successor in node.successors:
+                Successors.append(successor.name)
+
+            NodeSuccessors.append(Successors)
         for edge in self.edges:
             Edgeids.append(edge.id)
             EdgeNames.append(edge.name)
@@ -262,6 +268,8 @@ class Graph:
         print(Edgeids)
         print('Nodes name')
         print(NodeNames)
+        print('Nodes successors')
+        print(NodeSuccessors)
         print('Edge name')
         print(EdgeNames)
         print('Edge nodes')
@@ -329,6 +337,33 @@ class Graph:
                 edges.append([edge,0])
             if edge.nodes[1] == node:
                 edges.append([edge,1])
+
+    def graphCoherency(self):
+        nodesInEdges = []
+        nodes = self.nodes
+        edges = self.edges
+        successorsInEdges = {node.id : set([]) for node in nodes}
+        visuSuccessorsInEdges = {node.id : set([]) for node in nodes}
+        for edge in edges:
+            nodesInEdges.append(edge.nodes[0])
+            nodesInEdges.append(edge.nodes[1])
+            id = edge.nodes[0].id 
+            successorsInEdges[id].add(edge.nodes[1])
+            visuSuccessorsInEdges[id].add(edge.nodes[1].name)
+        print(visuSuccessorsInEdges)
+        nodesInEdges = set(nodesInEdges)
+        setOfNodes = set(nodes)
+        nodesSet = setOfNodes == nodesInEdges
+
+        if nodesSet:
+            for node in nodes:
+                id = node.id
+                if set(node.successors) != successorsInEdges[id]:
+                    return False
+            return True
+
+
+        return False
 
     
 
