@@ -8,18 +8,27 @@ class Fluid:
 
         self.__volumetricMass = None
         typeErrorAtEntering(self.__volumetricMass, volumetricMass, float, "the volumetric mass must be a float number")
+        if volumetricMass < 0:
+            raise ValueError('volumetric mass must be positive')
         self.__volumetricMass = volumetricMass
 
         self.__dynamicViscosity = None
         typeErrorAtEntering(self.__dynamicViscosity, dynamicViscosity, float, "the dynamic viscosity must be a float number")
+        if dynamicViscosity < 0:
+            raise ValueError('dynamic viscosity must be positive')
         self.__dynamicViscosity = dynamicViscosity
+        
 
         self.__thermicCapacity = None
         typeErrorAtEntering(self.__thermicCapacity, thermicCapacity, float, "the thermic capacity must be a float number")
+        if volumetricMass < 0:
+            raise ValueError('thermic capacity must be positive')
         self.__thermicCapacity = thermicCapacity
 
         self.__thermicConductivity = None
         typeErrorAtEntering(self.__thermicConductivity, thermicConductivity, float, "the thermic conductivity must be a float number")
+        if volumetricMass < 0:
+            raise ValueError('thermic conductivity must be positive')
         self.__thermicConductivity = thermicConductivity
 
     @property 
@@ -37,6 +46,8 @@ class Fluid:
     @volumetricMass.setter 
     def volumetricMass(self,volumetricMass):
         typeErrorAtEntering(self.__volumetricMass, volumetricMass, float, "the volumetric mass must be a float number")
+        if volumetricMass < 0:
+            raise ValueError('volumetric mass must be positive')
         self.__volumetricMass = volumetricMass
 
     @property 
@@ -46,6 +57,8 @@ class Fluid:
     @dynamicViscosity.setter 
     def dynamicViscosity(self,dynamicViscosity): 
         typeErrorAtEntering(self.__dynamicViscosity, dynamicViscosity, float, "the volumetric mass must be a float number")
+        if dynamicViscosity < 0:
+            raise ValueError('dynamic viscosity must be positive')
         self.__dynamicViscosity = dynamicViscosity
 
     @property 
@@ -55,6 +68,8 @@ class Fluid:
     @thermicCapacity.setter 
     def thermicCapacity(self,thermicCapacity): 
         typeErrorAtEntering(self.__thermicCapacity, thermicCapacity, float, "the volumetric mass must be a float number")
+        if thermicCapacity < 0:
+            raise ValueError('thermic capacity must be positive')
         self.__thermicCapacity = thermicCapacity
 
     @property 
@@ -64,6 +79,8 @@ class Fluid:
     @thermicConductivity.setter 
     def thermicConductivity(self,thermicConductivity): 
         typeErrorAtEntering(self.__thermicConductivity, thermicConductivity, float, "the volumetric mass must be a float number")
+        if thermicConductivity < 0:
+            raise ValueError('volumetric mass must be positive')
         self.__thermicConductivity = thermicConductivity
 
     def volumetricMassEvolutionDefinition(self, dependancy):

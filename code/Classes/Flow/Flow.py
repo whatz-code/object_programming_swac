@@ -31,7 +31,7 @@ class Flow:
             raise TypeError("the outlet temperature must be a float or a none type")
         
         eau = Fluid()
-        if type(fluid) is type(eau):
+        if isinstance(fluid,Fluid):
             self.__fluid = fluid
         else :
             raise TypeError("the fluid must be a fluid object")
@@ -98,7 +98,7 @@ class Flow:
     @fluid.setter 
     def fluid(self,fluid): 
         eau = Fluid()
-        if type(fluid) is type(eau):
+        if isinstance(fluid,Fluid):
             self.__fluid = fluid
         else :
             raise TypeError("the fluid must be a fluid object")

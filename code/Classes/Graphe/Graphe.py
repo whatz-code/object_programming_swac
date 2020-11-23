@@ -3,7 +3,7 @@ class Graph:
 #l'initialisation de la classe : 
 
     def TestEqualityOfEdges(edge1, edge2):
-        if type(edge1) is not Edge or type(edge2) is not Edge:
+        if not(isinstance(edge1,Edge)) or not(isinstance(edge2,Edge)):
             raise TypeError("it must be two edges")
         if edge1.nodes == edge2.nodes:
             return True
@@ -17,13 +17,13 @@ class Graph:
         if type(nodes) is not list:
             raise TypeError("nodes must be a list of nodes")
         for node in nodes :
-            if type(node) is not Node:
+            if not(isinstance(node,Node)):
                 raise TypeError("nodes must be a list of nodes")
 
         if type(edges) is not list:
             raise TypeError("edges must be a list of edges")
         for edge in edges :
-            if type(edge) is not Edge:
+            if not(isinstance(edge,Edge)):
                 raise TypeError("edges must be a list of edges")
         
 
@@ -84,7 +84,7 @@ class Graph:
 
 
     def appendNode(self,node):
-        if type(node) is not Node:
+        if not(isinstance(node,Node)):
             raise TypeError("node must be a node object")
         node.id = len(self.nodes)
         self.nodes.append(node)
@@ -93,7 +93,7 @@ class Graph:
         self.delSuccessorsOut(self.nodes)
 
     def newEdge(self, node1, node2, name = None):
-        if type(node1) is not Node or type(node2) is not Node:
+        if not(isinstance(node1,Node)) or not(isinstance(node2,Node)):
             raise TypeError("nodes schould be node objects")
 
         newEdge = True
@@ -157,7 +157,7 @@ class Graph:
                 raise TypeError('var must be a list of 2 nodes')
             if len(var) != 2 :
                 raise TypeError('var must be a list of 2 nodes')
-            if type(var[0]) is not Node or type(var[1]) is not Node :
+            if not(isinstance(var[0],Node)) or not(isinstance(var[1],Node)) :
                 raise TypeError('var must be a list of 2 nodes')
             for j in range(N):
                 if self.edges[j].nodes[0] == var[0] and self.edges[j].nodes[1] == var[1]:
@@ -179,7 +179,7 @@ class Graph:
         if type(nodes) is not list:
             raise TypeError("nodes must be a list of nodes")
         for node in nodes :
-            if type(node) is not Node:
+            if not(isinstance(node,Node)):
                 raise TypeError("nodes must ba list of nodes")
         for node in nodes:
             for successor in node.successors:
@@ -235,7 +235,7 @@ class Graph:
             raise ValueError("there is no node called by this name")
     
     def widthCourse(self, node): #ne fonctionne qu'avec des graphes orientés
-        if type(node) is not Node:
+        if not(isinstance(node,Node)):
             raise TypeError('node must be node type')
         distance = {node0.id : [] for node0 in self.nodes}
         chemins = {node0.id : [] for node0 in self.nodes}   #Tout les chemins qui ont mené au noeud correspondant à l'id 
@@ -266,14 +266,14 @@ class Graph:
         return(distance, chemins, boucles)
 
     def distance(node1,node2):
-        if type(node1) is not Node or type(node2) is not Node:
+        if not(isinstance(node1,Node)) or not(isinstance(node2,Node)):
             raise TypeError('node must be node type')
         distancesToNode1, chemins, boucles = self.widthCourse(node1)
         distancesToNode2 = distancesToNode1[node2.id]
 
 
     def loops(self, node, by = 'edges'):
-        if type(node) is not Node:
+        if not(isinstance(node,Node)):
             raise TypeError('node must be node type')
         distance, paths, loopsById = self.widthCourse(node)
         loopsByNodes = []
@@ -297,13 +297,13 @@ class Graph:
             if not(len(nodes) == 2):
                 raise TypeError("nodes must be a node or a list of 2 nodes")
             for node in nodes:
-                    if type(node) is not Node :
+                    if not(isinstance(node,Node)) :
                         raise TypeError("nodes must be a node or a list of 2 nodes")
             for edge in self.edges:
                 if edge.nodes[0] == nodes[0] and edge.nodes[1] == nodes[1]:
                     return edge
         else:
-            if type(nodes) is not Node:
+            if not(isinstance(nodes,Node)):
                 raise TypeError("nodes must be a node or a list of 2 nodes")
             edges = []
             for edge in self.edges:
@@ -357,7 +357,7 @@ class Node:
         
         if type(successors) is list:
             for successor in successors :
-                if type(successor) is not Node :
+                if not(isinstance(successor,Node)):
                     raise TypeError("successors must be a list of nodes")
             self.__successors = list(set(successors))
         else :
@@ -391,7 +391,7 @@ class Node:
     def successors(self,successors): 
         if type(successors) is type([]):
             for successor in successors :
-                if type(successor) is not Node :
+                if not(isinstance(successor,Node)) :
                     raise TypeError("successors must be a list of nodes")
             self.__successors = list(set(successors))
         else :
@@ -399,7 +399,7 @@ class Node:
 
     def addSuccessor(self, *nodes):
         for node in nodes:
-            if type(node) is Node:
+            if isinstance(node,Node):
                 if node not in self.__successors:
                     self.__successors.append(node)
             else :
@@ -408,15 +408,17 @@ class Node:
     def delSuccessor(self, var, by = 'id'):
         N = len(self.successors)
         if by == 'id':
-            for j in range(N):
-                if j < N-1:
-                    if self.successors[j].id == var:
-                        del self.__successors[j]
+            for j in range(N-1):
+                if self.successors[j].id == var:
+                    del self.__successors[j]
+                if self.successors[-1].id == var:
+                    del self.__successors[-1]
         if by == 'name':
-            for j in range(N):
-                if j < N-1:
-                    if self.successors[j].name == var:
-                        del self.__successors[j]
+            for j in range(N-1):
+                if self.successors[j].name == var:
+                    del self.__successors[j]
+                if self.successors[-1].name == var:
+                    del self.__successors[-1]
         if by == 'node':
                 self.__successors.remove(var)
 
@@ -427,7 +429,7 @@ class Edge:
         if type(nodes) is type([]):
             if len(nodes) == 2:
                 for node in nodes:
-                    if type(node) is not type(node):
+                    if not(isinstance(node,Node)):
                         raise TypeError("nodes must be a list of 2 objects node")
                 if nodes[1] not in nodes[0].successors:
                     nodes[0].addSuccessor(nodes[1])
@@ -455,7 +457,7 @@ class Edge:
         if type(nodes) is type([]):
             if len(nodes) == 2:
                 for node in nodes:
-                    if type(node) is not type(node):
+                    if not(isinstance(node,Node)):
                         raise TypeError("nodes must be a list of 2 objects node")
                 if nodes[1] in nodes[0].successors:
                     raise ValueError("it can only be one edge for 2 nodes")
