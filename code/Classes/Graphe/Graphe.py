@@ -308,9 +308,9 @@ class Graph:
             edges = []
             for edge in self.edges:
                 if edge.nodes[0] == nodes:
-                    edges.append([edge,0])
-                if edge.nodes[1] == nodes:
                     edges.append([edge,1])
+                if edge.nodes[1] == nodes:
+                    edges.append([edge,-1])
             return edges
 
 
@@ -338,7 +338,15 @@ class Graph:
 
         return False
 
+    def opengGraph(self):
+        open = False
+        for node in self.nodes:
+            if node.successors == []:
+                return True
+        return open
+
     
+
 
 
 
@@ -421,6 +429,9 @@ class Node:
                     del self.__successors[-1]
         if by == 'node':
                 self.__successors.remove(var)
+
+
+
 
 class Edge:
     def __init__(self, name = None, nodes = None, id = 0):

@@ -18,6 +18,13 @@ class Resolve:
             return Xn1
     fixePointResolution = staticmethod(fixePointResolution)
 
+    def functionToSecante(xmin, xmax, f):
+        if xmin >= xman
+            raise ValueError("xmax > xmin")
+         a = (f(xmax) - f(xmin)) / (xmax - xmin)
+         b = f(xmin) - (f(xmax) - f(xmin)) / (xmax - xmin) * xmin
+         return a, b
+
 
 
 class DataAnalysis :

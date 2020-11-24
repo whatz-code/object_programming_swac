@@ -20,7 +20,7 @@ eau = Fluid()
 
 class Dipole(Edge):
     #l'initialisation de la classe : 
-    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamPole = None, upstreamPole = None, flow = Flow()) : 
+    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamPole = None, upstreamPole = None, flow = Flow(), flowRateMax = None) : 
         if type(downstreamPole) is not Pole or type(upstreamPole) is not Pole:
             raise TypeError("downstreamPole and upstreamPole must be a pole")
         Edge.__init__(self, name, [downstreamPole, upstreamPole])
@@ -36,10 +36,16 @@ class Dipole(Edge):
         if type(crossSectionalArea) is not type(None):
             if crossSectionalArea <= 0:
                 raise ValueError('cross sectionnal area must be strictly positive')
+        if type(floatRateMax) is not float and type(flowRateMax) is not None:
+            raise TypeError ("the maximal flow rate must be a float number")
+        if type(flowRateMax) is not None:
+            if flowRateMax <=0:
+                raise ValueError("the maximal flow rate must be strictly positive")
         self.__name = name
         self.__hydraulicDiameter = hydraulicDiameter
         self.__crossSectionalArea = crossSectionalArea
         self.__flow = flow
+        self.__flowRateMax = flowRateMax
     @property 
     def name(self): 
         return self.__name
@@ -115,6 +121,19 @@ class Dipole(Edge):
         if type(upstreamPole) is not Pole:
             raise TypeError('the upstreamPole must be a Pole type')
         self.nodes[1] = upstreamPole
+
+    @property 
+    def flowRateMax(self): 
+        return self.__flowRateMax
+
+    @flowRateMax.setter 
+    def flowRateMax(self,flowRateMax): 
+        if type(floatRateMax) is not float and type(flowRateMax) is not None:
+            raise TypeError ("the maximal flow rate must be a float number")
+        if type(flowRateMax) is not None:
+            if flowRateMax <=0:
+                raise ValueError("the maximal flow rate must be strictly positive")
+        self.__flowRateMax = flowRateMax
 
     def hydraulicCorrelation(self, reynoldsNumber) :
         if type(reynoldsNumber) is float:

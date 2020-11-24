@@ -116,8 +116,65 @@ class HydraulicCircuit(Graph):
         self.delEdge( dipole, by = "edge")
         del self.testingVariables[dipole.id]
 
-    def hydraulicFunctionnement(self):
+    def testCircuit(self):#cette fonction va renvoyer True si le circuit est possible et false sinon
+        if self.edges == []
+            raise ValueError("the circuit must have a dipole")
+        if self.opengGraph(): #si un graphe est ouvert il faut nécessairement qu'il y ait du liquide qui rentre de l'extérieur (et donc qu'un noeud n'ait pas de noeud descendant)
+            test = False
+            for node in self.nodes:
+                finds = self.searchEdgesByNodes(node)
+                testing = True
+                for find in finds:
+                    if find[1] == 1: #si le noeud admet un ascendant
+                        testing = False
+                if testing:
+                    test = True
+            return test 
+        else : #si le circuit est fermé, pour que le circuit vérifie la conservation de la quanttité de fluide il faut nécessairement que tout les dipoles appartiennent à une boucle (sinon le liquide s'accumulerait à un endroit) 
+            test = False
+            Loops = self.loops(self.nodes[0])
+            for dipole in self.dipoles:
+                for loop in Loops:
+                    if dipole in loop:
+                        test = True
+            return test
+
+
+
+
+    def hydraulicFunctionnementCloseCircuit(self):
+        if len(self.edges) == 0:
+            raise ValueError("the hydraulic circuit must have at least one dipole")
+        if self.openGraph():
+            raise ValueError("the hydraulic circuit must be close")
+        loopsByEdge = self.loops(self.nodes[0]) #On commence par déterminer les différentes boucles du circuit pour appliquer : sum Dp = 0 sur chaque boucle
+        loopsByNode = self.loops(self.nodes[0],by = 'nodes')
+        # on essai de se rapprocher de la solution en utilisant le débit maximal s'il est donné:
+        # test de si le débit maximal est donnée pour les débits variables :
+        testingVariables = self.testingVariables
+        N = len(testingVariables) #correspond aussi au nombre de dipoles présents dans le circuit
+        testMaximalFlowRate = True
+        variableFlowRateDipole = [] #on fait une liste des ids des dipoles dans lesquels s'écoule un débit inconnu
+        for i in range(N):
+            dipole = self.dipoles[i]
+            if testingVariables[i][0]: #si le débit du dipole i n'est pas fixé
+                variableFlowRateDipole.append(i) 
+                if dipole.flowRateMax == None:
+                    testMaximalFlowRate = False #si jamais le débit maximum n'est pas fixé on ne peut pas estimer une solution pour commencer l'algorithme
+                    print("it should be easier to conoverge if the maximal flow rate of " + str(dipole.name) + " was defined")
+            if testingVariables[i][0] and testingVariables[i][1]: #s'il n'y a ni le débit ni la différence de pression qui est fixée il doit obligatoirement y avoir la caracteristique du circuit qui est définie
+                if dipole.caracteristic(1.0) == None: #on appelle la fonction il ne faut pas qu'elle retourne None
+                    raise ValueError("the hydraulic caracteristic of the dipole " +str(dipole.name)+ "needs to be defined to calcul the hydraulic fonctionnement of the circuit" )
+        #On commence par déterminer dans tout les cas la partie du système qui sera linéaire avec la lois des noeuds:
+        loopNumber = len(loopsByEdge)
+        for i in range(loopNumber):
+            loopByNode = loopsByNode[i]
+            loopsByEdge = loopsByEdge[i]
+
+
+        if testMaximalFlowRate = True : #dans ce cas là on linéarise le système avec la méthode de la sécante (sur toute les caracteristiques) pour s'approcher de la solution par la résolution d'un système linéaire
             
+        loopsByEdge = self.loops(self.node[0])
 
 
 
@@ -125,6 +182,11 @@ class HydraulicCircuit(Graph):
 
 
         def functionToZero(self): #doit renvoyer la fonction à faire converger vers 0
+            
+
+
+
+
             def function(flowRates, pressures): #on définit les variables dans l'ordre de définition des dipôles (correspondant en fait à leur id)
                 equations = []
                 for node in self.nodes:
