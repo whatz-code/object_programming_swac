@@ -9,7 +9,7 @@ from Flow import Flow
 from Fluid import Fluid
 from Graphe import Graph, Node, Edge, Queue
 from  math import pi
-class TestFlow(unittest.TestCase):
+class TestPipe(unittest.TestCase):
     def setUp(self):
         self.downstreamPole = Pole('pole1')
         self.upstreamPole = Pole('pole2')
