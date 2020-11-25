@@ -217,7 +217,7 @@ class TestGraphe(unittest.TestCase):
         print(boucles)
 
     def test_loops(self):
-        print('\n' +  'loop')
+        print('\n' +  'loops 1')
         node1 = Node(name = "node1")
         node2 = Node(name = "node2")
         node3 = Node(name = "node3")
@@ -254,7 +254,41 @@ class TestGraphe(unittest.TestCase):
             print(edges)
             print('by nodes :')
             print(nodes)
-                
+        print('\n' + 'loops 2')
+        node1 = Node(name = "node1")
+        node2 = Node(name = "node2")
+        node3 = Node(name = "node3")
+        node4 = Node(name = "node4")
+        node5 = Node(name = "node5")
+        node6 = Node(name = "node6")
+        node7 = Node(name = "node7")
+        edge1 = Edge('edge1',[node1,node2])
+        edge2 = Edge('edge2', [node2,node3])
+        edge3 = Edge('edge3',[node3,node4])
+        edge4 = Edge('edge4', [node4, node1])
+        edge5 = Edge('edge5', [node3, node5])
+        edge6 = Edge('edge6',[node5,node6])
+        edge7 = Edge('edge7', [node6,node7])
+        edge8 = Edge('edge8', [node7, node3])
+        graph = Graph(nodes = [], edges = [edge1,edge2,edge2,edge3,edge4,edge5,edge6,edge7,edge8])
+        loopsByEdges = graph.loops(node1)
+        loopsByNodes = graph.loops(node1, 'nodes')
+        N = len(loopsByEdges)
+        for i in range(N):
+            print("loop number :"+ str(i))
+            loopByEdges = loopsByEdges[i]
+            loopByNodes = loopsByNodes[i]
+            edges = []
+            nodes = []
+            for edge in loopByEdges:
+                edges.append(edge.name)
+            for node in loopByNodes:
+                nodes.append(node.name)
+            print('By edges :')
+            print(edges)
+            print('by nodes :')
+            print(nodes)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -88,19 +88,3 @@ class DataAnalysis :
 
 #test
 
-def g(x):
-    return (0.8*x)
-
-zeroG = Resolve.fixePointResolution(g,0.9,-0.7)
-
-X = [4, 1, 3, 5, 7, 2]
-Y = [12, 20, 40, 80, 12, 17]
-
-interpolationXY = DataAnalysis.interpolation(X,Y)
-
-def G(X):
-    return (np.array([X[0],X[1]]))
-X = np.ones((2,1))
-X[0] = 10
-zerosG = Resolve.multiDimensionnalBroydenResolution(G,X)
-print(zerosG)

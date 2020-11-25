@@ -36,9 +36,9 @@ class Dipole(Edge):
         if type(crossSectionalArea) is not type(None):
             if crossSectionalArea <= 0:
                 raise ValueError('cross sectionnal area must be strictly positive')
-        if type(floatRateMax) is not float and type(flowRateMax) is not None:
+        if type(flowRateMax) is not float and type(flowRateMax) is not type(None):
             raise TypeError ("the maximal flow rate must be a float number")
-        if type(flowRateMax) is not None:
+        if type(flowRateMax) is not type(None):
             if flowRateMax <=0:
                 raise ValueError("the maximal flow rate must be strictly positive")
         self.__name = name
@@ -128,9 +128,9 @@ class Dipole(Edge):
 
     @flowRateMax.setter 
     def flowRateMax(self,flowRateMax): 
-        if type(floatRateMax) is not float and type(flowRateMax) is not None:
+        if type(flowRateMax) is not float and type(flowRateMax) is not type(None):
             raise TypeError ("the maximal flow rate must be a float number")
-        if type(flowRateMax) is not None:
+        if type(flowRateMax) is not type(None):
             if flowRateMax <=0:
                 raise ValueError("the maximal flow rate must be strictly positive")
         self.__flowRateMax = flowRateMax

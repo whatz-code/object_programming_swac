@@ -47,7 +47,10 @@ class HydraulicCircuit(Graph):
             testingVariables.append(variablesDipole)
         
         self.__testingVariables = testingVariables
-
+        self.__nodesLawFunction = None
+        self.__dipoles = self.edges
+        self.__poles = self.nodes
+        self.__loopLawFunction = None
     
 
 
@@ -69,7 +72,7 @@ class HydraulicCircuit(Graph):
 
     @property 
     def dipoles(self): 
-        self.edges
+        return self.edges
 
     @dipoles.setter 
     def dipoles(self,dipoles): 
@@ -83,6 +86,13 @@ class HydraulicCircuit(Graph):
     def poles(self,poles): 
         self.nodes = poles
 
+    @property 
+    def nodesLawFunction(self): 
+        self.__nodesLawFunction
+
+    @property 
+    def loopLawfunction(self): 
+        self.__loopLawFunction
 
     def addDipole(self, dipole, name = None):
         pole1 = dipole.downstreamPole
@@ -117,7 +127,7 @@ class HydraulicCircuit(Graph):
         del self.testingVariables[dipole.id]
 
     def testCircuit(self):#cette fonction va renvoyer True si le circuit est possible et false sinon
-        if self.edges == []
+        if self.edges == []:
             raise ValueError("the circuit must have a dipole")
         if self.opengGraph(): #si un graphe est ouvert il faut nécessairement qu'il y ait du liquide qui rentre de l'extérieur (et donc qu'un noeud n'ait pas de noeud descendant)
             test = False
@@ -140,9 +150,9 @@ class HydraulicCircuit(Graph):
             return test
 
 
-
-
     def hydraulicFunctionnementCloseCircuit(self):
+
+    def variablesAndEquationsOfHydraulicFunctionnement(self):
         if len(self.edges) == 0:
             raise ValueError("the hydraulic circuit must have at least one dipole")
         if self.openGraph():
@@ -155,6 +165,8 @@ class HydraulicCircuit(Graph):
         N = len(testingVariables) #correspond aussi au nombre de dipoles présents dans le circuit
         testMaximalFlowRate = True
         variableFlowRateDipole = [] #on fait une liste des ids des dipoles dans lesquels s'écoule un débit inconnu
+        variablePressureDipole = [] #on fait une liste des ids dans lesquels la différence de pression est inconnue
+        dipoleWithCaracteristic = [] #on fait une liste des ids dans lesquels ni la différence de pression est connue ni le débit n'est connue
         for i in range(N):
             dipole = self.dipoles[i]
             if testingVariables[i][0]: #si le débit du dipole i n'est pas fixé
@@ -162,104 +174,127 @@ class HydraulicCircuit(Graph):
                 if dipole.flowRateMax == None:
                     testMaximalFlowRate = False #si jamais le débit maximum n'est pas fixé on ne peut pas estimer une solution pour commencer l'algorithme
                     print("it should be easier to conoverge if the maximal flow rate of " + str(dipole.name) + " was defined")
+            if testingVariables[i][1]:
+                variablePressureDipole.append(i)
             if testingVariables[i][0] and testingVariables[i][1]: #s'il n'y a ni le débit ni la différence de pression qui est fixée il doit obligatoirement y avoir la caracteristique du circuit qui est définie
+                dipoleWithCaracteristic.append(i)
                 if dipole.caracteristic(1.0) == None: #on appelle la fonction il ne faut pas qu'elle retourne None
                     raise ValueError("the hydraulic caracteristic of the dipole " +str(dipole.name)+ "needs to be defined to calcul the hydraulic fonctionnement of the circuit" )
-        #On commence par déterminer dans tout les cas la partie du système qui sera linéaire avec la lois des noeuds:
-        loopNumber = len(loopsByEdge)
 
-        Q = {} #dictionnaire qui fait correspondre l'id des dipoles aux débits inconnus
-        DP = {} #dictionnaire qui fait correspondre l'id des dipoles aux pressions inconnues
-        X = [] #vecteur des inconnues tel que X[Q[i]] correspond au débit inconnue du dipole i et X[DP[i]] correspondà la différence de pression inconnue du dipôle i
-        F = [] #vecteur des equations (chaque terme correspond à une fonction à annuler)
+
+        #les fonctions qu'il va falloir annuler:
+        if self.loopLawfunction == None:
+            self.loopLaw
+        if self.nodesLawFunction == None:
+            self.nodesLawFunction
+        
+        looplaw = self.loopLaw
+        nodeslawfunction = self.nodesLawFunction
+        
+        #on modifie ces fonctions en fixant les paramètres qui ont été fixés précédemment
+        def modifiyFunction()
+            N = len(variableFlowRateDipole)
+            localVariableFlowRate = {variableFlowRateDipole[i] : i for i in range(N)}
+            N = len(variablePressureDipole)
+            localVariablePressure = {variableFlowRateDipole[i] : i for i in range(N)}
+            N = len(self.dipoles)
+            localNodesLaw = nodeslawfunction
+            def newNodesLaw(QNew): #avec QNew qui réunit tout les débits inconnus QNew[i] = Q[variableFlowRateDipole[i]]
+                Q = np.zeros((N,1))
+                for id in range(N):
+                    if id not in localVariableFlowRate:
+                        Q[id] = self.dipoles[id].flow.flowRate
+
+                    else :
+                        Q[id] = QNew[localVariableFlowRate[id]]
+                return localNodesLaw(Q)
+            def newEdgeLaw(Xnew): #Xnew est un mélange de quelques débits tels que leurs dipoles admettent une caracteristique et de quelques pression dont le débit est fixé et la pression est variable
+                
+
+    def NodesLaw(self): #les équations vérifiées par les débits Q rangées dans l'ordre croissant des ids
+        loopsByEdge = self.loops(self.nodes[0])
+        loopsByNode = self.loops(self.nodes[0],by = 'nodes')
+        loopNumber = len(loopsByEdge)
+        dipoles = [] #liste des dipoles déjà rencontrés
+        poles = [] #liste des poles déjà rencontrées
+        M = [] #la matrice de l'équation linéaire finale : MQ=0
+        NumberOfEquations = 0
         for i in range(loopNumber):
+            dipolesNumber = len(self.dipoles)
             loopByNode = loopsByNode[i]
             loopsByEdge = loopsByEdge[i]
-            dipoles = [] #liste des dipoles déjà rencontrés
-            poles = [] #liste des poles déjà rencontrées
             for pole in loopByNode:
+                searchDipoles = self.searchEdgesByNodes(pole)
                 if pole not in poles:
                     poles.append(pole)
-                    searchDipoles = self.searchEdgesByNodes(pole)
-                    equation = False
                     yn = []
                     ids = []
+                    lignOfM = [0 for i in range(dipolesNumber)]
                     for dipole in searchDipoles:
-                        if dipole[0] not in dipoles:
-                            equation = True
+                            id = dipole[0].id
                             ids.append(id)
-                            def fn(x):
-                                sign = dipole[1]
-                                def local(x):
-                                    return sign * x
-                                return local
-                            fn = local
-                        ids.append(id)
-                        yn.append(fn)
-                    def f():
-                        ynlocal = yn
-                        Nlocal = length(ids)
-                        idslocal = ids
-                        def local(Q):
-                            sum = 0
-                            for i in range(N):
-                                sum += ynlocal[i](Q[idslocal[i]])
-                            return sum
-                        return Q
-                    f = f()
-                            
+                            lignOfM[id] = dipole[1]
+                    M.append(lignOfM)
+                    NumberOfEquations += 1
+        M = np.array(M)
+        for i in range(NumberOfEquations):
+            MminusLigni = np.delete(M, (i), axis = 0)
+            if np.linalg.matrix_rank(M) == np.linalg.matrix_rank(MminusLigni):
+                Mnew = MminusLigni
+        M = Mnew
+        def f():
+            Mlocal = M
+            def g(P):
+                np.array(P)
+                return np.dot(Mlocal,P)
+            return g
+        localNodesLaw = f()
+        self.__nodesLawFunction = localNodesLaw
+        return localNodesLaw, M
+    
+    def loopLaw(self):
+        F = []
+        loopsByEdge = self.loops(self.nodes[0])
+        loopsByNode = self.loops(self.nodes[0],by = 'nodes')
+        loopNumber = len(loopsByEdge)
+        F = []
+        for i in range(loopNumber):
+            def floop():
+                ids = []
+                for edge in loopsByEdge[i]:
+                    id = edge.id
+                    ids.append(id)
+                def f(P):
+                    sum = 0
+                    for id in ids:
+                        sum += P[id]
+                    return sum
+                return f
+            F.append(floop())
+        def loopLawfunction():
+            Nequations = len(F)
+            Y = np.zeros((Nequations,1))
+            Flocal = F
+            def g(P):
+                for i in range(Nequations):
+                    Y[i] = F[i](P)
+                return Y
+            return g
+        self.__loopLawFunction = loopLawfunction()
+        return loopLawfunction()
+
+                    
+                    
 
                             
 
-
-
-        #définition de la fonction G à résoudre X qui contient en premier lieu les débits inconnus puis les pertes de charges (tout ceci dans l'ordre croissant de l'id)
-        def G(X):
-            Y = []
-            for X in 
-
-
-        if testMaximalFlowRate = True : #dans ce cas là on linéarise le système avec la méthode de la sécante (sur toute les caracteristiques) pour s'approcher de la solution par la résolution d'un système linéaire
-            
-        loopsByEdge = self.loops(self.node[0])
+                    
 
 
 
 
-
-
-        def functionToZero(self): #doit renvoyer la fonction à faire converger vers 0
-            
-
-
-
-
-            def function(flowRates, pressures): #on définit les variables dans l'ordre de définition des dipôles (correspondant en fait à leur id)
-                equations = []
-                for node in self.nodes:
-                    edges = self.searchEdgesByNodes(node)
-                    equations.append(0)
-                    for edge in edges:
-                        dipole = edge[0]
-                        if edge[1] == 0:
-                            factor = -1
-                        else :
-                            factor = 1
-                        equations[-1] += factor * dipole.flow.flowRate
                         
 
                 
 
         
-#microtest
-# pole1 = Pole('A',successors=[])
-# pole2 = Pole('B',successors=[])
-# pole3 = Pole('C',successors=[])
-# pole1.successors = [pole2]
-# pole2.successors = [pole3]
-# pole3.successors = [pole1]
-# pump = IdealPump(name = 'pump', downstreamPole=pole1,upstreamPole=pole2)
-# pipe2 = Pipe(name = 'Pipe 1', downstreamPole=pole2,upstreamPole=pole3)
-# pipe3 = Pipe(name = 'Pipe 2', downstreamPole=pole3,upstreamPole=pole1)
-# hydraulicCircuit = HydraulicCircuit(dipoles=[pump,pipe2,pipe3])
-# hydraulicCircuit.print()

@@ -11,7 +11,7 @@ from Calculus import Resolve
 from Fluid import Fluid
 from Dipole import Dipole, Pipe, PlateHeatExchangerSide, Pole, IdealPump
 from HydraulicCricuit import HydraulicCircuit
-
+import numpy as np
 
 class TestGraphe(unittest.TestCase):
 
@@ -80,6 +80,44 @@ class TestGraphe(unittest.TestCase):
         print(hydraulicCircuit.testingVariables)
 
                 
+    def test_nodeslaw():
+        print('\n'+'test_node law')
+        pole1 = Pole("pole1")
+        pole2 = Pole("pole2")
+        pole3 = Pole("pole3")
+        pole4 = Pole("pole4")
+        dipole1 = Dipole("dipole1",downstreamPole = pole1, upstreamPole = pole2)
+        dipole2 = Dipole("dipole2",downstreamPole = pole2, upstreamPole = pole3)
+        dipole3 = Dipole("dipole3",downstreamPole = pole3, upstreamPole = pole1)
+        dipole4 = Dipole("dipole4",downstreamPole = pole3, upstreamPole = pole4)
+        dipole5 = Dipole("dipole5",downstreamPole = pole4, upstreamPole = pole1)
+
+        hydraulicCircuit = HydraulicCircuit(dipoles = [dipole1, dipole2, dipole3, dipole4, dipole5])
+        hydraulicCircuit.print()
+        f, M = hydraulicCircuit.NodesLaw()
+        print(M)
+        print(np.linalg.matrix_rank(M))
+        print(f([1,1,1,1,1]))
+    test_nodeslaw = staticmethod(test_nodeslaw)
+
+    def test_looplaw():
+        print('\n'+'test_node law')
+        pole1 = Pole("pole1")
+        pole2 = Pole("pole2")
+        pole3 = Pole("pole3")
+        pole4 = Pole("pole4")
+        dipole1 = Dipole("dipole1",downstreamPole = pole1, upstreamPole = pole2)
+        dipole2 = Dipole("dipole2",downstreamPole = pole2, upstreamPole = pole3)
+        dipole3 = Dipole("dipole3",downstreamPole = pole3, upstreamPole = pole1)
+        dipole4 = Dipole("dipole4",downstreamPole = pole3, upstreamPole = pole4)
+        dipole5 = Dipole("dipole5",downstreamPole = pole4, upstreamPole = pole1)
+
+        hydraulicCircuit = HydraulicCircuit(dipoles = [dipole1, dipole2, dipole3, dipole4, dipole5])
+        hydraulicCircuit.print()
+        f = hydraulicCircuit.loopLaw()
+        print(f([1,1,1,1,1]))
+    test_looplaw = staticmethod(test_looplaw)
 
 if __name__ == '__main__':
-    unittest.main()
+    #unittest.main()
+    TestGraphe.test_looplaw()
