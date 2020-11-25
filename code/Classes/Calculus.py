@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sc
+from scipy.linalg import norm
 from scipy.optimize import curve_fit
 class Resolve:
     #pour utiliser une telle méthode il faut s'assurer que l'on ait suffisament proche de la solution et que abs(g'(solution)+relaxation)<abs(1+relaxation)
-    def fixePointResolution(g, X0, relaxation = 0, seuil = 0.0001, iterationMax = 100): #g est la fonction du point fixe g(x) = x
+    def fixePointResolution(g, X0, relaxation = 0, seuil = 0.000001, iterationMax = 100): #g est la fonction du point fixe g(x) = x
         iteration = 0
         Xn = X0
         Xn1 = X0+1
@@ -19,11 +20,42 @@ class Resolve:
     fixePointResolution = staticmethod(fixePointResolution)
 
     def functionToSecante(xmin, xmax, f):
-        if xmin >= xman
+        if xmin >= xman:
             raise ValueError("xmax > xmin")
-         a = (f(xmax) - f(xmin)) / (xmax - xmin)
-         b = f(xmin) - (f(xmax) - f(xmin)) / (xmax - xmin) * xmin
-         return a, b
+        a = (f(xmax) - f(xmin)) / (xmax - xmin)
+        b = f(xmin) - (f(xmax) - f(xmin)) / (xmax - xmin) * xmin
+        return a, b
+    functionToSecante = staticmethod(functionToSecante)
+
+    def multiDimensionnalBroydenResolution(F,X0,B0 = None, seuil = 0.0001, iterationMax = 100):
+        dimensions = X0.shape
+        dimension = dimensions[0]
+        if B0 == None:
+            B0 = np.eye(dimension)
+        B0[0][0] = 2
+        Bn = B0
+        iteration = 0
+        Xn = X0
+        deltaXn = np.zeros((dimension,1))
+        deltaXn[0] = 1
+        Fn = F(Xn)
+    
+        while (norm(deltaXn) > seuil or norm(Fn) > seuil) and iteration <= iterationMax :
+            Fn = F(Xn)
+            deltaXn = np.linalg.solve(Bn,- Fn)
+            Xn = Xn + deltaXn
+            Fn1 = F(Xn)
+            deltaFn = Fn1 - Fn
+            Bn = Bn + (deltaFn - Bn.dot(deltaXn)).dot(np.transpose(deltaXn)) / norm(deltaXn) ** 2
+        if iteration == iterationMax:
+            raise StopIteration("the Boryden resolution doesn't converge")
+        
+        return Xn
+
+
+
+
+
 
 
 
@@ -66,3 +98,9 @@ Y = [12, 20, 40, 80, 12, 17]
 
 interpolationXY = DataAnalysis.interpolation(X,Y)
 
+def G(X):
+    return (np.array([X[0],X[1]]))
+X = np.ones((2,1))
+X[0] = 10
+zerosG = Resolve.multiDimensionnalBroydenResolution(G,X)
+print(zerosG)

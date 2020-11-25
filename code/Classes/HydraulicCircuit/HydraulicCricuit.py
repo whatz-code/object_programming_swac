@@ -167,9 +167,56 @@ class HydraulicCircuit(Graph):
                     raise ValueError("the hydraulic caracteristic of the dipole " +str(dipole.name)+ "needs to be defined to calcul the hydraulic fonctionnement of the circuit" )
         #On commence par déterminer dans tout les cas la partie du système qui sera linéaire avec la lois des noeuds:
         loopNumber = len(loopsByEdge)
+
+        Q = {} #dictionnaire qui fait correspondre l'id des dipoles aux débits inconnus
+        DP = {} #dictionnaire qui fait correspondre l'id des dipoles aux pressions inconnues
+        X = [] #vecteur des inconnues tel que X[Q[i]] correspond au débit inconnue du dipole i et X[DP[i]] correspondà la différence de pression inconnue du dipôle i
+        F = [] #vecteur des equations (chaque terme correspond à une fonction à annuler)
         for i in range(loopNumber):
             loopByNode = loopsByNode[i]
             loopsByEdge = loopsByEdge[i]
+            dipoles = [] #liste des dipoles déjà rencontrés
+            poles = [] #liste des poles déjà rencontrées
+            for pole in loopByNode:
+                if pole not in poles:
+                    poles.append(pole)
+                    searchDipoles = self.searchEdgesByNodes(pole)
+                    equation = False
+                    yn = []
+                    ids = []
+                    for dipole in searchDipoles:
+                        if dipole[0] not in dipoles:
+                            equation = True
+                            ids.append(id)
+                            def fn(x):
+                                sign = dipole[1]
+                                def local(x):
+                                    return sign * x
+                                return local
+                            fn = local
+                        ids.append(id)
+                        yn.append(fn)
+                    def f():
+                        ynlocal = yn
+                        Nlocal = length(ids)
+                        idslocal = ids
+                        def local(Q):
+                            sum = 0
+                            for i in range(N):
+                                sum += ynlocal[i](Q[idslocal[i]])
+                            return sum
+                        return Q
+                    f = f()
+                            
+
+                            
+
+
+
+        #définition de la fonction G à résoudre X qui contient en premier lieu les débits inconnus puis les pertes de charges (tout ceci dans l'ordre croissant de l'id)
+        def G(X):
+            Y = []
+            for X in 
 
 
         if testMaximalFlowRate = True : #dans ce cas là on linéarise le système avec la méthode de la sécante (sur toute les caracteristiques) pour s'approcher de la solution par la résolution d'un système linéaire
