@@ -1,6 +1,8 @@
 import sys
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Graphe")
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Dipole")
+sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes")
+from Calculus import Resolve
 from Dipole import Pipe, Dipole, PlateHeatExchangerSide, IdealPump, Pole
 from Graphe import Graph, Node, Edge, Queue
 from matplotlib import numpy as np
@@ -21,8 +23,10 @@ class HydraulicCircuit(Graph):
         self.__name = name
         self.__variables = ['flowRate', 'pressureDifference', 'inputTemperature', 'outletTemperature']
         testingVariables = []
+        self.__dipoles = self.edges
+        self.__poles = self.nodes
     
-        for dipole in dipoles:
+        for dipole in self.dipoles:
             variablesDipole = []
             if dipole.flow.flowRate == None:
                 variablesDipole.append(True)
@@ -48,10 +52,10 @@ class HydraulicCircuit(Graph):
         
         self.__testingVariables = testingVariables
         self.__nodesLawFunction = None
-        self.__dipoles = self.edges
-        self.__poles = self.nodes
         self.__loopLawFunction = None
-    
+        self.__nodesLawToResolve = None
+        self.__loopLawToResolve = None
+        self.__hydraulicSystem = None
 
 
     @property 
@@ -89,10 +93,43 @@ class HydraulicCircuit(Graph):
     @property 
     def nodesLawFunction(self): 
         self.__nodesLawFunction
+    
+    @nodesLawFunction.setter 
+    def nodesLawFunction(self,nodesLawFunction): 
+        self.__nodesLawFunction = nodesLawFunction
+
+    @property
+    def loopLawFunction(self):
+        self.__loopLawFunction
+
+    @loopLawFunction.setter 
+    def loopLawFunction(self,loopLawFunction): 
+        self.__loopLawFunction = loopLawFunction
 
     @property 
-    def loopLawfunction(self): 
-        self.__loopLawFunction
+    def nodesLawToResolve(self): 
+        self.__nodesLawToResolve
+
+    @nodesLawToResolve.setter 
+    def nodesLawToResolve(self,nodesLawToResolve): 
+        self.__nodesLawToResolve = nodesLawToResolve
+
+    @property 
+    def loopLawToResolve(self): 
+        self.__loopLawToResolve
+
+    @loopLawToResolve.setter 
+    def loopLawToResolve(self,loopLawToResolve): 
+        self.__loopLawToResolve = loopLawToResolve
+
+    @property 
+    def hydraulicSystem(self): 
+        self.__hydraulicSystem
+
+    @hydraulicSystem.setter 
+    def hydraulicSystem(self,hydraulicSystem): 
+        self.__hydraulicSystem = hydraulicSystem
+    
 
     def addDipole(self, dipole, name = None):
         pole1 = dipole.downstreamPole
@@ -150,7 +187,63 @@ class HydraulicCircuit(Graph):
             return test
 
 
-    def hydraulicFunctionnementCloseCircuit(self):
+    def resolutionFonctionnement(self):
+        if self.__hydraulicSystem == None:
+            self.hydraulicSystem()
+        hydraulicSystem = self.__hydraulicSystem
+        (functionToZero ,XToDipolesFlowRateOnly, XToDipolesUnknownPressureOnly,XToDipolesUnknownPressureAndUnknownFlowRate) = hydraulicSystem
+        N = len(self.dipoles)
+        X0 = [0.2 , 0.2,0.2,0.2, 0.2,400000]
+        print(XToDipolesUnknownPressureOnly)
+        X0 = np.array(X0)
+        X0 = X0.astype(type('float', (float,), {}))
+        return Resolve.multiDimensionnalBroydenResolution(functionToZero,X0)
+        
+
+
+
+
+    def hydraulicSystem(self):
+        if self.nodesLawToResolve == None:
+            nodesLawToResolve = self.variablesAndEquationsOfHydraulicFunctionnement()[0]
+            loopLawToResolve = self.variablesAndEquationsOfHydraulicFunctionnement()[1]
+        else : 
+            nodesLawToResolve = self.nodesLawToResolve
+            loopLawToResolve = self.loopLawToResolve
+        nodeLaw = nodesLawToResolve[0]
+        loopLaw = loopLawToResolve[0]
+        dipolesFlowRateToX = nodesLawToResolve[1]
+        dipolesUnknownPressureToX = loopLawToResolve[3]
+        dipolesUnknownPressureAndUnknownFlowRateToX = loopLawToResolve[2]
+        XToDipolesFlowRateOnly = {}
+        XToDipolesUnknownPressureOnly = {}
+        XToDipolesUnknownPressureAndUnknownFlowRate = {}
+        N = len(self.dipoles)
+        IdsInX = []
+        for key in dipolesFlowRateToX:
+            if not(key in dipolesUnknownPressureAndUnknownFlowRateToX):
+                IdsInX.append(key)
+                XToDipolesFlowRateOnly[len(IdsInX)-1] = key
+        for key in dipolesFlowRateToX:
+            if key in dipolesUnknownPressureAndUnknownFlowRateToX:    
+                XToDipolesUnknownPressureAndUnknownFlowRate[len(IdsInX) - 1] = key
+                IdsInX.append(key)
+        for key in dipolesUnknownPressureToX:
+            IdsInX.append(key)
+            XToDipolesUnknownPressureOnly[len(IdsInX) - 1] = key
+        if len(IdsInX) < N:
+            raise ValueError("there is not enough equations")
+        Ndeb = len(XToDipolesFlowRateOnly)
+        Ncarac = len(XToDipolesUnknownPressureAndUnknownFlowRate)
+        Npressure = len(XToDipolesUnknownPressureOnly)
+        def buildOfSystem(X):
+            Ydeb = list(nodeLaw(X[0:Ndeb + Ncarac]))
+            Ypressure = list(loopLaw(X[Ndeb:]))
+            Y = Ydeb + Ypressure
+            return Y
+        self.__hydraulicSystem = (buildOfSystem,XToDipolesFlowRateOnly, XToDipolesUnknownPressureOnly,XToDipolesUnknownPressureAndUnknownFlowRate)
+        return (buildOfSystem,XToDipolesFlowRateOnly, XToDipolesUnknownPressureOnly,XToDipolesUnknownPressureAndUnknownFlowRate)
+            
 
     def variablesAndEquationsOfHydraulicFunctionnement(self):
         if len(self.edges) == 0:
@@ -165,53 +258,104 @@ class HydraulicCircuit(Graph):
         N = len(testingVariables) #correspond aussi au nombre de dipoles présents dans le circuit
         testMaximalFlowRate = True
         variableFlowRateDipole = [] #on fait une liste des ids des dipoles dans lesquels s'écoule un débit inconnu
-        variablePressureDipole = [] #on fait une liste des ids dans lesquels la différence de pression est inconnue
         dipoleWithCaracteristic = [] #on fait une liste des ids dans lesquels ni la différence de pression est connue ni le débit n'est connue
+        variablePressureDipole = [] #on fait une liste des ids dans lesquels la différence de pression est inconnue
         for i in range(N):
             dipole = self.dipoles[i]
             if testingVariables[i][0]: #si le débit du dipole i n'est pas fixé
                 variableFlowRateDipole.append(i) 
-                if dipole.flowRateMax == None:
+                if dipole.flowRateEstimation == None:
                     testMaximalFlowRate = False #si jamais le débit maximum n'est pas fixé on ne peut pas estimer une solution pour commencer l'algorithme
-                    print("it should be easier to conoverge if the maximal flow rate of " + str(dipole.name) + " was defined")
+                    print("it should be easier to conoverge if the estimation flow rate of " + str(dipole.name) + " was defined")
             if testingVariables[i][1]:
                 variablePressureDipole.append(i)
             if testingVariables[i][0] and testingVariables[i][1]: #s'il n'y a ni le débit ni la différence de pression qui est fixée il doit obligatoirement y avoir la caracteristique du circuit qui est définie
                 dipoleWithCaracteristic.append(i)
                 if dipole.caracteristic(1.0) == None: #on appelle la fonction il ne faut pas qu'elle retourne None
                     raise ValueError("the hydraulic caracteristic of the dipole " +str(dipole.name)+ "needs to be defined to calcul the hydraulic fonctionnement of the circuit" )
-
-
-        #les fonctions qu'il va falloir annuler:
-        if self.loopLawfunction == None:
-            self.loopLaw
-        if self.nodesLawFunction == None:
-            self.nodesLawFunction
+        pressureIsUnknown = [] #on fait une liste d'ids dans laquelle la pression sera l'inconnue : tel que la pression est variable et n'admet pas de caractéristique
+        for id in variablePressureDipole:
+            if id not in dipoleWithCaracteristic:
+                pressureIsUnknown.append(id)
         
-        looplaw = self.loopLaw
-        nodeslawfunction = self.nodesLawFunction
+        #les fonctions qu'il va falloir annuler:
+        if self.__loopLawFunction == None:
+            self.loopLaw()
+        if self.__nodesLawFunction == None:
+            self.nodesLaw()
+        loopLaw = self.__loopLawFunction
+        nodesLawFunction = self.__nodesLawFunction
         
         #on modifie ces fonctions en fixant les paramètres qui ont été fixés précédemment
-        def modifiyFunction()
-            N = len(variableFlowRateDipole)
+        def hydraulicFunctionToResolution():
+            N = len(variableFlowRateDipole) 
             localVariableFlowRate = {variableFlowRateDipole[i] : i for i in range(N)}
             N = len(variablePressureDipole)
             localVariablePressure = {variableFlowRateDipole[i] : i for i in range(N)}
+            N = len(pressureIsUnknown)
+            localPressureUnknown = {pressureIsUnknown[i] : i for i in range(N)}
+            N = len(dipoleWithCaracteristic)
+            localDipoleCaracteristic = {dipoleWithCaracteristic[i] : i for i in range(N)}
             N = len(self.dipoles)
-            localNodesLaw = nodeslawfunction
+            localNodesLaw = nodesLawFunction
+            listOfQ = []
+            listOfP = []
+            for id in range(N):
+                listOfQ.append(self.dipoles[id].flow.flowRate)
+                listOfP.append(self.dipoles[id].flow.pressureDifference)
+            X = dipoleWithCaracteristic + pressureIsUnknown
+            N = len(X)
+            allUnknownPressure = {X[i] : i for i in range(N)}
             def newNodesLaw(QNew): #avec QNew qui réunit tout les débits inconnus QNew[i] = Q[variableFlowRateDipole[i]]
                 Q = np.zeros((N,1))
+                QNew = list(QNew)
+                Q = list(Q)
                 for id in range(N):
-                    if id not in localVariableFlowRate:
-                        Q[id] = self.dipoles[id].flow.flowRate
-
+                    if not(id in localVariableFlowRate):
+                        Q[id] = listOfQ[id]
                     else :
                         Q[id] = QNew[localVariableFlowRate[id]]
+
                 return localNodesLaw(Q)
+            N = len(self.dipoles)
+            F = [] #La liste des fonctions caracteristiques des dipoles qui en admettent (F(Q) = DeltaP)
+            for id in dipoleWithCaracteristic:
+                def f():
+                    def caracteristic(q, fluid):
+                        return self.dipoles[id].caracteristic(q , fluid)
+                    caracteristic = self.dipoles[id].caracteristic
+                    fluid = self.dipoles[id].flow.fluid
+                    def g(q):
+                        if q == None:
+                            raise ValueError("the flow rate of the dipole " + string(self.dipoles[id].name) + " must be given")
+                        return caracteristic(q, fluid)
+                    return g
+                f = f()
+                F.append(f)
+            localLoopLaw = loopLaw
             def newEdgeLaw(Xnew): #Xnew est un mélange de quelques débits tels que leurs dipoles admettent une caracteristique et de quelques pression dont le débit est fixé et la pression est variable
+                P = np.zeros((N,1))
+                P = list(P)
+                for id in range(N):
+                    if not(id in allUnknownPressure):
+                        P[id] = listOfP[id]
+                    else:
+                        if not(id in localDipoleCaracteristic):
+                            P[id] = Xnew[allUnknownPressure[id]]
+                        else :
+                            f = F[localDipoleCaracteristic[id]]
+                            P[id] = f(Xnew[allUnknownPressure[id]])
+                return loopLaw(P)
+            return [(newNodesLaw, localVariableFlowRate),(newEdgeLaw, allUnknownPressure, localDipoleCaracteristic, localPressureUnknown)]
+        equations = hydraulicFunctionToResolution()
+        self.nodesLawToResolve = equations[0]
+        self.loopLawToResolve = equations[1]
+        return [equations[0],equations[1]]
+
+
                 
 
-    def NodesLaw(self): #les équations vérifiées par les débits Q rangées dans l'ordre croissant des ids
+    def nodesLaw(self): #les équations vérifiées par les débits Q rangées dans l'ordre croissant des ids
         loopsByEdge = self.loops(self.nodes[0])
         loopsByNode = self.loops(self.nodes[0],by = 'nodes')
         loopNumber = len(loopsByEdge)
@@ -249,7 +393,8 @@ class HydraulicCircuit(Graph):
                 return np.dot(Mlocal,P)
             return g
         localNodesLaw = f()
-        self.__nodesLawFunction = localNodesLaw
+        self.nodesLawFunction = f()
+
         return localNodesLaw, M
     
     def loopLaw(self):
@@ -278,9 +423,9 @@ class HydraulicCircuit(Graph):
             def g(P):
                 for i in range(Nequations):
                     Y[i] = F[i](P)
-                return Y
+                return list(Y)
             return g
-        self.__loopLawFunction = loopLawfunction()
+        self.loopLawFunction = loopLawfunction()
         return loopLawfunction()
 
                     

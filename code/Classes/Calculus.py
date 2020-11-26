@@ -41,10 +41,20 @@ class Resolve:
         Fn = F(Xn)
     
         while (norm(deltaXn) > seuil or norm(Fn) > seuil) and iteration <= iterationMax :
+            print(norm(Fn))
             Fn = F(Xn)
+            NewFn = []
+            for fn in Fn:
+                fn = float(fn)
+                NewFn.append(fn)
+            Fn = np.array(NewFn)
             deltaXn = np.linalg.solve(Bn,- Fn)
             Xn = Xn + deltaXn
+            Xn = Xn.astype(type('float', (float,), {}))
+            print(Xn)
             Fn1 = F(Xn)
+            print(Fn1)
+            Fn1 = np.array(Fn1)
             deltaFn = Fn1 - Fn
             Bn = Bn + (deltaFn - Bn.dot(deltaXn)).dot(np.transpose(deltaXn)) / norm(deltaXn) ** 2
         if iteration == iterationMax:

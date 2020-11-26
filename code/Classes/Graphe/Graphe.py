@@ -338,7 +338,7 @@ class Graph:
 
         return False
 
-    def opengGraph(self):
+    def openGraph(self):
         open = False
         for node in self.nodes:
             if node.successors == []:

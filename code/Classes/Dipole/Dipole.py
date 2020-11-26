@@ -11,6 +11,7 @@ sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Flow")
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Fluid")
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Graphe")
+import numpy as np
 from Flow import Flow
 from Graphe import Edge, Node
 from Calculus import Resolve
@@ -20,7 +21,7 @@ eau = Fluid()
 
 class Dipole(Edge):
     #l'initialisation de la classe : 
-    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamPole = None, upstreamPole = None, flow = Flow(), flowRateMax = None) : 
+    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamPole = None, upstreamPole = None, flow = Flow(), flowRateEstimation = None, pressureDifferenceEstimation = None) : 
         if type(downstreamPole) is not Pole or type(upstreamPole) is not Pole:
             raise TypeError("downstreamPole and upstreamPole must be a pole")
         Edge.__init__(self, name, [downstreamPole, upstreamPole])
@@ -36,16 +37,19 @@ class Dipole(Edge):
         if type(crossSectionalArea) is not type(None):
             if crossSectionalArea <= 0:
                 raise ValueError('cross sectionnal area must be strictly positive')
-        if type(flowRateMax) is not float and type(flowRateMax) is not type(None):
+        if type(flowRateEstimation) is not float and type(flowRateEstimation) is not type(None):
             raise TypeError ("the maximal flow rate must be a float number")
-        if type(flowRateMax) is not type(None):
-            if flowRateMax <=0:
+        if type(flowRateEstimation) is not type(None):
+            if flowRateEstimation <=0:
                 raise ValueError("the maximal flow rate must be strictly positive")
+        if type(pressureDifferenceEstimation) is not float and type(pressureDifferenceEstimation) is not type(None):
+            raise TypeError ("the maximal flow rate must be a float number")
         self.__name = name
         self.__hydraulicDiameter = hydraulicDiameter
         self.__crossSectionalArea = crossSectionalArea
         self.__flow = flow
-        self.__flowRateMax = flowRateMax
+        self.__flowRateEstimation = flowRateEstimation
+        self.__pressureDifferenceEstimation = pressureDifferenceEstimation
     @property 
     def name(self): 
         return self.__name
@@ -123,17 +127,27 @@ class Dipole(Edge):
         self.nodes[1] = upstreamPole
 
     @property 
-    def flowRateMax(self): 
-        return self.__flowRateMax
+    def flowRateEstimation(self): 
+        return self.__flowRateEstimation
 
-    @flowRateMax.setter 
-    def flowRateMax(self,flowRateMax): 
-        if type(flowRateMax) is not float and type(flowRateMax) is not type(None):
+    @flowRateEstimation.setter 
+    def flowRateEstimation(self,flowRateEstimation): 
+        if type(flowRateEstimation) is not float and type(flowRateEstimation) is not type(None):
             raise TypeError ("the maximal flow rate must be a float number")
-        if type(flowRateMax) is not type(None):
-            if flowRateMax <=0:
+        if type(flowRateEstimation) is not type(None):
+            if flowRateEstimation <=0:
                 raise ValueError("the maximal flow rate must be strictly positive")
-        self.__flowRateMax = flowRateMax
+        self.__flowRateEstimation = flowRateEstimation
+
+    @property 
+    def pressureDifferenceEstimation(self): 
+        return self.__pressureDifferenceEstimation
+
+    @pressureDifferenceEstimation.setter 
+    def pressureDifferenceEstimation(self,pressureDifferenceEstimation): 
+        if type(pressureDifferenceEstimation) is not float and type(pressureDifferenceEstimation) is not type(None):
+            raise TypeError ("the maximal flow rate must be a float number")
+        self.__pressureDifferenceEstimation = pressureDifferenceEstimation
 
     def hydraulicCorrelation(self, reynoldsNumber) :
         if type(reynoldsNumber) is float:
@@ -159,8 +173,8 @@ class Pipe(Dipole):
     
     #l'initialisation de la classe : 
 
-    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50.0, downstreamPole = None, upstreamPole = None, flow = Flow()) : 
-        Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4, downstreamPole, upstreamPole, flow)
+    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50.0, downstreamPole = None, upstreamPole = None, flow = Flow(), flowRateEstimation = None, pressureDifferenceEstimation = None) : 
+        Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4, downstreamPole, upstreamPole, flow, flowRateEstimation, pressureDifferenceEstimation)
         if type(rugosity) is not float :
             raise TypeError('rugosity has to be a float number')
         if rugosity < 0:
@@ -200,7 +214,6 @@ class Pipe(Dipole):
     
 
     def hydraulicCorrelation(self, reynoldsNumber, length = None, hydraulicDiameter = None, rugosity = None):
-
         if length == None :
             length = self.length
         if hydraulicDiameter == None :
@@ -252,7 +265,7 @@ class Pipe(Dipole):
         if fluid == None:
             fluid = self.flow.fluid
 
-        if type(flowRate) is not float:
+        if type(flowRate) is not float and not(isinstance(flowRate,np.float64)):
             raise TypeError('the flow rate must be a float number')
         if not(isinstance(fluid,Fluid)):
             raise TypeError('fluid must be a Fluid')
@@ -262,8 +275,8 @@ class Pipe(Dipole):
 
                       
 class PlateHeatExchangerSide(Dipole):
-    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1.0, hydraulicCorrectingFactor = 1.0, thermicCorrectingFactor = 1, downstreamPole = None, upstreamPole = None, flow = Flow()) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow)
+    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1.0, hydraulicCorrectingFactor = 1.0, thermicCorrectingFactor = 1, downstreamPole = None, upstreamPole = None, flow = Flow(), flowRateEstimation = None, pressureDifferenceEstimation = None) : 
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow, flowRateEstimation, pressureDifferenceEstimation)
         if type(angle) is not float:
             raise TypeError("the pattern angle must be a float number")
         if angle <0 or angle >90:
@@ -478,8 +491,8 @@ class PlateHeatExchangerSide(Dipole):
         
 class IdealPump(Dipole):
     #l'initialisation de la classe : 
-    def __init__(self,name = None, hydraulicDiameter = None,crossSectionalArea = None ,flowRate = None, downstreamPole = None, upstreamPole = None) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(flowRate = flowRate))
+    def __init__(self,name = None, hydraulicDiameter = None,crossSectionalArea = None ,flowRate = None, downstreamPole = None, upstreamPole = None, pressureDifferenceEstimation = None) : 
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(flowRate = flowRate), pressureDifferenceEstimation= pressureDifferenceEstimation)
 
 
 
