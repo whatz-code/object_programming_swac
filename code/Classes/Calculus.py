@@ -30,30 +30,27 @@ class Resolve:
     def multiDimensionnalBroydenResolution(F,X0,B0 = None, seuil = 0.0001, iterationMax = 100):
         dimensions = X0.shape
         dimension = dimensions[0]
-        if B0 == None:
-            B0 = np.eye(dimension)
-        B0[0][0] = 2
+        # if B0 == None:
+        #     B0 =  np.eye(dimension)
+        # B0[0][0] = 4
         Bn = B0
         iteration = 0
         Xn = X0
         deltaXn = np.zeros((dimension,1))
         deltaXn[0] = 1
+        print(X0)
         Fn = F(Xn)
+        Fn = np.array(Fn)
     
         while (norm(deltaXn) > seuil or norm(Fn) > seuil) and iteration <= iterationMax :
-            print(norm(Fn))
             Fn = F(Xn)
-            NewFn = []
-            for fn in Fn:
-                fn = float(fn)
-                NewFn.append(fn)
-            Fn = np.array(NewFn)
+            Fn = np.array(Fn)
             deltaXn = np.linalg.solve(Bn,- Fn)
-            Xn = Xn + deltaXn
+            Xn = np.array(Xn) + deltaXn
             Xn = Xn.astype(type('float', (float,), {}))
             print(Xn)
+            print(Fn)
             Fn1 = F(Xn)
-            print(Fn1)
             Fn1 = np.array(Fn1)
             deltaFn = Fn1 - Fn
             Bn = Bn + (deltaFn - Bn.dot(deltaXn)).dot(np.transpose(deltaXn)) / norm(deltaXn) ** 2

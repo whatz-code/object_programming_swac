@@ -193,11 +193,13 @@ class HydraulicCircuit(Graph):
         hydraulicSystem = self.__hydraulicSystem
         (functionToZero ,XToDipolesFlowRateOnly, XToDipolesUnknownPressureOnly,XToDipolesUnknownPressureAndUnknownFlowRate) = hydraulicSystem
         N = len(self.dipoles)
-        X0 = [0.2 , 0.2,0.2,0.2, 0.2,400000]
+        X0 = [0.025 , 0.025,0.025,0.025, 0.025,1.0]
         print(XToDipolesUnknownPressureOnly)
+        print(XToDipolesFlowRateOnly)
+        print(XToDipolesUnknownPressureAndUnknownFlowRate)
         X0 = np.array(X0)
-        X0 = X0.astype(type('float', (float,), {}))
-        return Resolve.multiDimensionnalBroydenResolution(functionToZero,X0)
+        B =np.array([[1,0,-1,0,0,0],[-1,1,0,0,1,0],[0,-1,1,0,0,-1],[0,0,0,1,-1,0],[0,0,1,0,0,0],[0,0,0,0,0,1]])
+        return Resolve.multiDimensionnalBroydenResolution(functionToZero,X0,B)
         
 
 
@@ -237,8 +239,8 @@ class HydraulicCircuit(Graph):
         Ncarac = len(XToDipolesUnknownPressureAndUnknownFlowRate)
         Npressure = len(XToDipolesUnknownPressureOnly)
         def buildOfSystem(X):
-            Ydeb = list(nodeLaw(X[0:Ndeb + Ncarac]))
-            Ypressure = list(loopLaw(X[Ndeb:]))
+            Ydeb = nodeLaw(X[0:Ndeb + Ncarac])
+            Ypressure = loopLaw(X[Ndeb:])
             Y = Ydeb + Ypressure
             return Y
         self.__hydraulicSystem = (buildOfSystem,XToDipolesFlowRateOnly, XToDipolesUnknownPressureOnly,XToDipolesUnknownPressureAndUnknownFlowRate)
@@ -307,9 +309,7 @@ class HydraulicCircuit(Graph):
             N = len(X)
             allUnknownPressure = {X[i] : i for i in range(N)}
             def newNodesLaw(QNew): #avec QNew qui réunit tout les débits inconnus QNew[i] = Q[variableFlowRateDipole[i]]
-                Q = np.zeros((N,1))
-                QNew = list(QNew)
-                Q = list(Q)
+                Q = [0 for i in range(N)]
                 for id in range(N):
                     if not(id in localVariableFlowRate):
                         Q[id] = listOfQ[id]
@@ -334,17 +334,20 @@ class HydraulicCircuit(Graph):
                 F.append(f)
             localLoopLaw = loopLaw
             def newEdgeLaw(Xnew): #Xnew est un mélange de quelques débits tels que leurs dipoles admettent une caracteristique et de quelques pression dont le débit est fixé et la pression est variable
-                P = np.zeros((N,1))
-                P = list(P)
+                P = [0 for i in range(N)]
                 for id in range(N):
                     if not(id in allUnknownPressure):
                         P[id] = listOfP[id]
                     else:
                         if not(id in localDipoleCaracteristic):
-                            P[id] = Xnew[allUnknownPressure[id]]
+                            P[id] = Xnew[allUnknownPressure[id]] / 10 ** 5
                         else :
                             f = F[localDipoleCaracteristic[id]]
-                            P[id] = f(Xnew[allUnknownPressure[id]])
+                            print(Xnew[allUnknownPressure[id]])
+                            if Xnew[allUnknownPressure[id]] < 0:
+                                P[id] = - f(-Xnew[allUnknownPressure[id]]) / 10 ** 5
+                            else :
+                                P[id] = - f(Xnew[allUnknownPressure[id]]) / 10 ** 5
                 return loopLaw(P)
             return [(newNodesLaw, localVariableFlowRate),(newEdgeLaw, allUnknownPressure, localDipoleCaracteristic, localPressureUnknown)]
         equations = hydraulicFunctionToResolution()
@@ -390,7 +393,9 @@ class HydraulicCircuit(Graph):
             Mlocal = M
             def g(P):
                 np.array(P)
-                return np.dot(Mlocal,P)
+                Y = np.dot(Mlocal,P)
+                Y = [Y[i] for i in range(len(Y))]
+                return Y
             return g
         localNodesLaw = f()
         self.nodesLawFunction = f()
@@ -418,12 +423,12 @@ class HydraulicCircuit(Graph):
             F.append(floop())
         def loopLawfunction():
             Nequations = len(F)
-            Y = np.zeros((Nequations,1))
+            Y = [0 for i in range(Nequations)]
             Flocal = F
             def g(P):
                 for i in range(Nequations):
                     Y[i] = F[i](P)
-                return list(Y)
+                return Y
             return g
         self.loopLawFunction = loopLawfunction()
         return loopLawfunction()

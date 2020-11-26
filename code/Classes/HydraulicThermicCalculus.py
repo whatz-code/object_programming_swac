@@ -33,7 +33,7 @@ class HydraulicThermicCalculus :
             flow = flow / 3600
         velocity = flow / dipole.crossSectionalArea
         reynoldsNumber = HydraulicThermicCalculus.reynolds(dipole.hydraulicDiameter,velocity,fluid.volumetricMass,fluid.dynamicViscosity,None)
-        headLossCoefficient = dipole.hydraulicCorrelation(reynoldsNumber)
+        headLossCoefficient = dipole.hydraulicCorrelation(float(reynoldsNumber))
         headLoss = HydraulicThermicCalculus.headLoss(headLossCoefficient, fluid.volumetricMass, velocity)
         if pressureUnity == "Pa":
             return headLoss
