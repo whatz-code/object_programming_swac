@@ -170,7 +170,7 @@ class TestGraphe(unittest.TestCase):
         pole3 = Pole("pole3")
         pole4 = Pole("pole4")
         pole5 = Pole("pole5")
-        pump = IdealPump("ideal pump", flowRate=0.05, downstreamPole=pole1,upstreamPole=pole2)
+        pump = IdealPump("ideal pump", flowRate=0.22, downstreamPole=pole1,upstreamPole=pole2)
         pipe1 = Pipe("pipe1",downstreamPole=pole2, upstreamPole=pole5)
         pipe2 = Pipe("pipe2", downstreamPole=pole5, upstreamPole= pole1)
         pipe3 = Pipe("pipe3", downstreamPole=pole3, upstreamPole=pole4)
@@ -182,9 +182,29 @@ class TestGraphe(unittest.TestCase):
         f, M = hydraulicCircuit.nodesLaw()
         print(np.linalg.matrix_rank(M))
         print(M)
-        hydraulicCircuit.resolutionFonctionnement()
+        print(hydraulicCircuit.resolutionFonctionnement())
+    
+    def testpointfunctionnement2():
+        pole1 = Pole("pole1")
+        pole2 = Pole("pole2")
+        pole3 = Pole("pole3")
+        pole4 = Pole("pole4")
+        pump = IdealPump("ideal pump", flowRate=0.23, downstreamPole=pole1,upstreamPole=pole2)
+        pipe = Pipe("pipe1",downstreamPole=pole3, upstreamPole=pole4)
+        flowOfblanck = Flow(pressureDifference=0.0)
+        blanck1 = Dipole("blanck1", flow = flowOfblanck, downstreamPole=pole2, upstreamPole=pole3)
+        blanck2 = Dipole("blanck2", flow = flowOfblanck, downstreamPole=pole4, upstreamPole=pole1)
+        hydraulicCircuit = HydraulicCircuit(dipoles = [pump, pipe, blanck1, blanck2])
+        hydraulicCircuit.print()
+        f, M = hydraulicCircuit.nodesLaw()
+        print(np.linalg.matrix_rank(M))
+        print(M)
+        print(hydraulicCircuit.resolutionFonctionnement())
     
         
+        
+
+
 if __name__ == '__main__':
     #unittest.main()
     TestGraphe.testpointfunctionnement()

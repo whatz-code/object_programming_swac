@@ -193,13 +193,13 @@ class HydraulicCircuit(Graph):
         hydraulicSystem = self.__hydraulicSystem
         (functionToZero ,XToDipolesFlowRateOnly, XToDipolesUnknownPressureOnly,XToDipolesUnknownPressureAndUnknownFlowRate) = hydraulicSystem
         N = len(self.dipoles)
-        X0 = [0.025 , 0.025,0.025,0.025, 0.025,1.0]
+        X0 = [0.2, 0.2, 0.2, 0.2,0.2,1000]
+        print(functionToZero(np.array(X0)))
         print(XToDipolesUnknownPressureOnly)
         print(XToDipolesFlowRateOnly)
         print(XToDipolesUnknownPressureAndUnknownFlowRate)
         X0 = np.array(X0)
-        B =np.array([[1,0,-1,0,0,0],[-1,1,0,0,1,0],[0,-1,1,0,0,-1],[0,0,0,1,-1,0],[0,0,1,0,0,0],[0,0,0,0,0,1]])
-        return Resolve.multiDimensionnalBroydenResolution(functionToZero,X0,B)
+        return  Resolve.multiDimensionnalNewtonResolution(functionToZero,X0)
         
 
 
@@ -228,8 +228,8 @@ class HydraulicCircuit(Graph):
                 XToDipolesFlowRateOnly[len(IdsInX)-1] = key
         for key in dipolesFlowRateToX:
             if key in dipolesUnknownPressureAndUnknownFlowRateToX:    
-                XToDipolesUnknownPressureAndUnknownFlowRate[len(IdsInX) - 1] = key
                 IdsInX.append(key)
+                XToDipolesUnknownPressureAndUnknownFlowRate[len(IdsInX) - 1] = key
         for key in dipolesUnknownPressureToX:
             IdsInX.append(key)
             XToDipolesUnknownPressureOnly[len(IdsInX) - 1] = key
@@ -239,6 +239,7 @@ class HydraulicCircuit(Graph):
         Ncarac = len(XToDipolesUnknownPressureAndUnknownFlowRate)
         Npressure = len(XToDipolesUnknownPressureOnly)
         def buildOfSystem(X):
+            X = X.reshape((len(X)))
             Ydeb = nodeLaw(X[0:Ndeb + Ncarac])
             Ypressure = loopLaw(X[Ndeb:])
             Y = Ydeb + Ypressure
@@ -343,7 +344,6 @@ class HydraulicCircuit(Graph):
                             P[id] = Xnew[allUnknownPressure[id]] / 10 ** 5
                         else :
                             f = F[localDipoleCaracteristic[id]]
-                            print(Xnew[allUnknownPressure[id]])
                             if Xnew[allUnknownPressure[id]] < 0:
                                 P[id] = - f(-Xnew[allUnknownPressure[id]]) / 10 ** 5
                             else :
@@ -392,7 +392,7 @@ class HydraulicCircuit(Graph):
         def f():
             Mlocal = M
             def g(P):
-                np.array(P)
+                p = np.array(P)
                 Y = np.dot(Mlocal,P)
                 Y = [Y[i] for i in range(len(Y))]
                 return Y

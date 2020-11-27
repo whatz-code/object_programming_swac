@@ -5,7 +5,7 @@ from scipy.linalg import norm
 from scipy.optimize import curve_fit
 class Resolve:
     #pour utiliser une telle méthode il faut s'assurer que l'on ait suffisament proche de la solution et que abs(g'(solution)+relaxation)<abs(1+relaxation)
-    def fixePointResolution(g, X0, relaxation = 0, seuil = 0.000001, iterationMax = 100): #g est la fonction du point fixe g(x) = x
+    def fixePointResolution(g, X0, relaxation = 0, seuil = 0.0000001, iterationMax = 100): #g est la fonction du point fixe g(x) = x
         iteration = 0
         Xn = X0
         Xn1 = X0+1
@@ -26,6 +26,33 @@ class Resolve:
         b = f(xmin) - (f(xmax) - f(xmin)) / (xmax - xmin) * xmin
         return a, b
     functionToSecante = staticmethod(functionToSecante)
+    def multiDimensionnalNewtonResolution(F,X0,seuil = 0.0001, iterationMax = 100):
+        dimension = len(X0)
+        iteration = 0
+        Xn = X0
+        deltaXn = np.zeros((dimension,1))
+        deltaXn[0] = 1
+        Fn = F(Xn)
+        Fn = np.array(Fn)
+        while (norm(deltaXn) > seuil or norm(Fn) > seuil) and iteration <= iterationMax :
+            Fn = F(Xn)
+            Fn = np.array(Fn)
+            jacobian = Resolve.estimationJacobian(F,Xn,dx = 0.00000000001)
+            invJacobian = np.linalg.inv(jacobian)
+            Xn1 = Xn - np.dot(invJacobian, Fn)
+            deltaXn = Xn1 - Xn
+            # print('Xn')
+            # print(norm(deltaXn))
+            # print('Fn')
+            # print(norm(Fn))
+            iteration +=1
+            Xn = Xn1
+            print(Fn)
+        if iteration == iterationMax:
+            raise StopIteration("the Boryden resolution doesn't converge")
+        
+        return Xn
+
 
     def multiDimensionnalBroydenResolution(F,X0,B0 = None, seuil = 0.0001, iterationMax = 100):
         dimensions = X0.shape
@@ -33,12 +60,13 @@ class Resolve:
         # if B0 == None:
         #     B0 =  np.eye(dimension)
         # B0[0][0] = 4
-        Bn = B0
+        # Bn = B0
+        print(X0)
+        Bn = Resolve.estimationJacobian(F,X0)
         iteration = 0
         Xn = X0
         deltaXn = np.zeros((dimension,1))
         deltaXn[0] = 1
-        print(X0)
         Fn = F(Xn)
         Fn = np.array(Fn)
     
@@ -48,17 +76,33 @@ class Resolve:
             deltaXn = np.linalg.solve(Bn,- Fn)
             Xn = np.array(Xn) + deltaXn
             Xn = Xn.astype(type('float', (float,), {}))
-            print(Xn)
-            print(Fn)
+            # print('Xn')
+            # print(norm(deltaXn))
+            # print('Fn')
+            # print(norm(Fn))
             Fn1 = F(Xn)
             Fn1 = np.array(Fn1)
             deltaFn = Fn1 - Fn
             Bn = Bn + (deltaFn - Bn.dot(deltaXn)).dot(np.transpose(deltaXn)) / norm(deltaXn) ** 2
+            iteration +=1
         if iteration == iterationMax:
             raise StopIteration("the Boryden resolution doesn't converge")
         
         return Xn
 
+    def estimationJacobian(F,X0,dx = 0.000001):
+        dimension = len(X0)
+        Jacobian = np.zeros((dimension,dimension))
+        X0 = np.array(X0)
+        X0 = X0.reshape((dimension,1))
+        for j in range(dimension):
+            Dxj = np.zeros((dimension,1))
+            Dxj[j] = dx
+            DFDxj = (np.array(F(X0 + Dxj)) -np.array(F(X0 - Dxj))) / (2 * dx)
+            for i in range(dimension):
+                DfiDxj = DFDxj[i]
+                Jacobian[i][j] = DfiDxj
+        return Jacobian 
 
 
 
