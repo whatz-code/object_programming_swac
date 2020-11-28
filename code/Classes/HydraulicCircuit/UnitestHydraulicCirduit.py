@@ -170,7 +170,7 @@ class TestGraphe(unittest.TestCase):
         pole3 = Pole("pole3")
         pole4 = Pole("pole4")
         pole5 = Pole("pole5")
-        pump = IdealPump("ideal pump", flowRate=0.22, downstreamPole=pole1,upstreamPole=pole2)
+        pump = IdealPump("ideal pump", flowRate=0.233, downstreamPole=pole1,upstreamPole=pole2)
         pipe1 = Pipe("pipe1",downstreamPole=pole2, upstreamPole=pole5)
         pipe2 = Pipe("pipe2", downstreamPole=pole5, upstreamPole= pole1)
         pipe3 = Pipe("pipe3", downstreamPole=pole3, upstreamPole=pole4)
@@ -182,7 +182,8 @@ class TestGraphe(unittest.TestCase):
         f, M = hydraulicCircuit.nodesLaw()
         print(np.linalg.matrix_rank(M))
         print(M)
-        print(hydraulicCircuit.resolutionFonctionnement())
+        hydraulicCircuit.resolutionFonctionnement()
+        print(pipe1.flow.flowRate)
     
     def testpointfunctionnement2():
         pole1 = Pole("pole1")
@@ -197,9 +198,8 @@ class TestGraphe(unittest.TestCase):
         hydraulicCircuit = HydraulicCircuit(dipoles = [pump, pipe, blanck1, blanck2])
         hydraulicCircuit.print()
         f, M = hydraulicCircuit.nodesLaw()
-        print(np.linalg.matrix_rank(M))
-        print(M)
-        print(hydraulicCircuit.resolutionFonctionnement())
+        hydraulicCircuit.resolutionFonctionnement()
+        print(pipe.flow.flowRate)
     
         
         

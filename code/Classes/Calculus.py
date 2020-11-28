@@ -47,7 +47,7 @@ class Resolve:
             # print(norm(Fn))
             iteration +=1
             Xn = Xn1
-            print(Fn)
+
         if iteration == iterationMax:
             raise StopIteration("the Boryden resolution doesn't converge")
         

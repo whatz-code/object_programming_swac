@@ -269,7 +269,7 @@ class Pipe(Dipole):
             raise TypeError('the flow rate must be a float number')
         if not(isinstance(fluid,Fluid)):
             raise TypeError('fluid must be a Fluid')
-        return HydraulicThermicCalculus.caracteristic(self, flowRate, fluid, flowRateUnity, pressureUnity)
+        return - HydraulicThermicCalculus.caracteristic(self, flowRate, fluid, flowRateUnity, pressureUnity)
     
 
 
@@ -439,7 +439,7 @@ class PlateHeatExchangerSide(Dipole):
         if not(isinstance(fluid,Fluid)):
             raise TypeError('fluid must be a Fluid')
 
-        return HydraulicThermicCalculus.caracteristic(self, flow, fluid, flowRateUnity, pressureUnity) * hydraulicCorrectingFactor
+        return - HydraulicThermicCalculus.caracteristic(self, flow, fluid, flowRateUnity, pressureUnity) * hydraulicCorrectingFactor
 
     def thermicCorrelation(self, reynoldsNumber, prandtlNumber, length = None, angle = None, Npasse = None, hydraulicDiameter = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09, thermicCorrectingFactor = 1):
         if angle == None:

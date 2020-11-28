@@ -187,19 +187,41 @@ class HydraulicCircuit(Graph):
             return test
 
 
-    def resolutionFonctionnement(self):
+    def resolutionFonctionnement(self, flowRateMagnitude = 0.1 ,pressureMagnitude = 100000.0 ):
         if self.__hydraulicSystem == None:
             self.hydraulicSystem()
         hydraulicSystem = self.__hydraulicSystem
         (functionToZero ,XToDipolesFlowRateOnly, XToDipolesUnknownPressureOnly,XToDipolesUnknownPressureAndUnknownFlowRate) = hydraulicSystem
-        N = len(self.dipoles)
-        X0 = [0.2, 0.2, 0.2, 0.2,0.2,1000]
-        print(functionToZero(np.array(X0)))
-        print(XToDipolesUnknownPressureOnly)
-        print(XToDipolesFlowRateOnly)
-        print(XToDipolesUnknownPressureAndUnknownFlowRate)
+        X0 = []
+        for key in XToDipolesFlowRateOnly:
+            flowRateEstimation = self.dipoles[XToDipolesFlowRateOnly[key]].flowRateEstimation
+            if flowRateEstimation != None:
+                X0.append(flowRateEstimation)
+            else :
+                X0.append(flowRateMagnitude)
+        for key in XToDipolesUnknownPressureAndUnknownFlowRate:
+            flowRateEstimation = self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].flowRateEstimation
+            if flowRateEstimation != None:
+                X0.append(flowRateEstimation)
+            else :
+                X0.append(flowRateMagnitude)
+        for key in XToDipolesUnknownPressureOnly:
+            pressureDifferenceEstimation = self.dipoles[XToDipolesUnknownPressureOnly[key]].pressureDifferenceEstimation
+            if pressureDifferenceEstimation != None:
+                X0.append(pressureDifferenceEstimation)
+            else :
+                X0.append(pressureMagnitude)
         X0 = np.array(X0)
-        return  Resolve.multiDimensionnalNewtonResolution(functionToZero,X0)
+        solution = Resolve.multiDimensionnalNewtonResolution(functionToZero,X0)
+        solution = [float(s) for s in solution]
+        for key in XToDipolesFlowRateOnly:
+            self.dipoles[XToDipolesFlowRateOnly[key]].flow.flowRate = solution[key]
+        for key in XToDipolesUnknownPressureOnly:
+            self.dipoles[XToDipolesUnknownPressureOnly[key]].flow.pressureDifference = solution[key]
+        for key in XToDipolesUnknownPressureAndUnknownFlowRate:
+            self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].flow.flowRate = solution[key]
+            self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].flow.pressureDifference = self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].caracteristic()
+
         
 
 
@@ -212,11 +234,14 @@ class HydraulicCircuit(Graph):
         else : 
             nodesLawToResolve = self.nodesLawToResolve
             loopLawToResolve = self.loopLawToResolve
+
         nodeLaw = nodesLawToResolve[0]
         loopLaw = loopLawToResolve[0]
+
         dipolesFlowRateToX = nodesLawToResolve[1]
         dipolesUnknownPressureToX = loopLawToResolve[3]
         dipolesUnknownPressureAndUnknownFlowRateToX = loopLawToResolve[2]
+
         XToDipolesFlowRateOnly = {}
         XToDipolesUnknownPressureOnly = {}
         XToDipolesUnknownPressureAndUnknownFlowRate = {}
@@ -229,10 +254,10 @@ class HydraulicCircuit(Graph):
         for key in dipolesFlowRateToX:
             if key in dipolesUnknownPressureAndUnknownFlowRateToX:    
                 IdsInX.append(key)
-                XToDipolesUnknownPressureAndUnknownFlowRate[len(IdsInX) - 1] = key
+                XToDipolesUnknownPressureAndUnknownFlowRate[len(IdsInX)-1] = key
         for key in dipolesUnknownPressureToX:
             IdsInX.append(key)
-            XToDipolesUnknownPressureOnly[len(IdsInX) - 1] = key
+            XToDipolesUnknownPressureOnly[len(IdsInX)-1] = key
         if len(IdsInX) < N:
             raise ValueError("there is not enough equations")
         Ndeb = len(XToDipolesFlowRateOnly)
@@ -265,11 +290,8 @@ class HydraulicCircuit(Graph):
         variablePressureDipole = [] #on fait une liste des ids dans lesquels la différence de pression est inconnue
         for i in range(N):
             dipole = self.dipoles[i]
-            if testingVariables[i][0]: #si le débit du dipole i n'est pas fixé
+            if testingVariables[i][0] and not(testingVariables[i][1]): #si le débit du dipole i n'est pas fixé
                 variableFlowRateDipole.append(i) 
-                if dipole.flowRateEstimation == None:
-                    testMaximalFlowRate = False #si jamais le débit maximum n'est pas fixé on ne peut pas estimer une solution pour commencer l'algorithme
-                    print("it should be easier to conoverge if the estimation flow rate of " + str(dipole.name) + " was defined")
             if testingVariables[i][1]:
                 variablePressureDipole.append(i)
             if testingVariables[i][0] and testingVariables[i][1]: #s'il n'y a ni le débit ni la différence de pression qui est fixée il doit obligatoirement y avoir la caracteristique du circuit qui est définie
@@ -280,7 +302,7 @@ class HydraulicCircuit(Graph):
         for id in variablePressureDipole:
             if id not in dipoleWithCaracteristic:
                 pressureIsUnknown.append(id)
-        
+        variableFlowRateDipole = variableFlowRateDipole + dipoleWithCaracteristic
         #les fonctions qu'il va falloir annuler:
         if self.__loopLawFunction == None:
             self.loopLaw()
@@ -294,7 +316,7 @@ class HydraulicCircuit(Graph):
             N = len(variableFlowRateDipole) 
             localVariableFlowRate = {variableFlowRateDipole[i] : i for i in range(N)}
             N = len(variablePressureDipole)
-            localVariablePressure = {variableFlowRateDipole[i] : i for i in range(N)}
+            localVariablePressure = {variablePressureDipole[i] : i for i in range(N)}
             N = len(pressureIsUnknown)
             localPressureUnknown = {pressureIsUnknown[i] : i for i in range(N)}
             N = len(dipoleWithCaracteristic)
@@ -316,7 +338,6 @@ class HydraulicCircuit(Graph):
                         Q[id] = listOfQ[id]
                     else :
                         Q[id] = QNew[localVariableFlowRate[id]]
-
                 return localNodesLaw(Q)
             N = len(self.dipoles)
             F = [] #La liste des fonctions caracteristiques des dipoles qui en admettent (F(Q) = DeltaP)
@@ -345,9 +366,9 @@ class HydraulicCircuit(Graph):
                         else :
                             f = F[localDipoleCaracteristic[id]]
                             if Xnew[allUnknownPressure[id]] < 0:
-                                P[id] = - f(-Xnew[allUnknownPressure[id]]) / 10 ** 5
+                                P[id] = f(-Xnew[allUnknownPressure[id]]) / 10 ** 5
                             else :
-                                P[id] = - f(Xnew[allUnknownPressure[id]]) / 10 ** 5
+                                P[id] = f(Xnew[allUnknownPressure[id]]) / 10 ** 5
                 return loopLaw(P)
             return [(newNodesLaw, localVariableFlowRate),(newEdgeLaw, allUnknownPressure, localDipoleCaracteristic, localPressureUnknown)]
         equations = hydraulicFunctionToResolution()
