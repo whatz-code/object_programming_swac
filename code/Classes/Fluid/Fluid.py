@@ -5,7 +5,7 @@ class Fluid:
     #l'initialisation de la classe : 
     def __init__(self,name = 'eau',volumetricMass = float(1000),dynamicViscosity = 0.001,thermicCapacity = float(4150),thermicConductivity = 0.6) : 
         self.__name = name
-
+        
         self.__volumetricMass = None
         typeErrorAtEntering(self.__volumetricMass, volumetricMass, float, "the volumetric mass must be a float number")
         if volumetricMass < 0:
@@ -38,6 +38,7 @@ class Fluid:
     @name.setter 
     def name(self,name): 
         self.__name = name
+    
 
     @property 
     def volumetricMass(self): 
@@ -97,9 +98,12 @@ class Fluid:
                 if modify :
                     self.volumetricMass = dependancy(temperature, pressure)
                 return dependancy(temperature, pressure)
+            self.volumetricMassEvolution = volumetricMassEvolutionDefinition
     
     def dynamicViscosityEvolutionDefinition(self, dependancy):
-        if type(dependancy) is not type(dynamicViscosityEvolution) :
+        def a():
+            pass
+        if type(dependancy) is not type(a) :
             raise TypeError("the fluid dependency must be a function")
         else :
             try :
@@ -110,9 +114,12 @@ class Fluid:
                 if modify :
                     self.dynamicViscosity = dependancy(temperature, pressure)
                 return dependancy(temperature, pressure)
+            self.dynamicViscosityEvolution = dynamicViscosityEvolutionDefinition
 
     def thermicCapacityEvolutionDefinition(self, dependancy):
-        if type(dependancy) is not type(thermicCapacityEvolution) :
+        def a():
+            pass
+        if type(dependancy) is not type(a) :
             raise TypeError("the fluid dependency must be a function")
         else :
             try :
@@ -123,9 +130,12 @@ class Fluid:
                 if modify :
                     self.thermicCapacity = dependancy(temperature, pressure)
                 return dependancy(temperature, pressure)
+            self.thermicCapacityEvolution = thermicCapacityEvolutionDefinition
 
     def thermicConductivityEvolutionDefinition(self, dependancy):
-        if type(dependancy) is not type(thermicConductivityEvolution) :
+        def a():
+            pass
+        if type(dependancy) is not type(a) :
             raise TypeError("the fluid dependency must be a function")
         else :
             try :
@@ -136,6 +146,7 @@ class Fluid:
                 if modify :
                     self.thermicConductivity = dependancy(temperature, pressure)
                 return dependancy(temperature, pressure)
+            self.thermicConductivityEvolution = thermicConductivityEvolutionDefinition
 
     def volumetricMassEvolution(temperature, pressure, modify = True):
         return None
@@ -151,6 +162,105 @@ class Fluid:
 
     
 
+class SeaWater(Fluid):
+    def __init__(self, salinity):
+        Fluid.__init__(self, name = "eau de mer")
+        if type(salinity) is not float:
+                raise TypeError("the salinity must be a float number")
+        self.__salinity = salinity
+
+    @property 
+    def salinity(self): 
+        return self.__salinity
+
+    @salinity.setter 
+    def salinity(self,salinity):
+        typeErrorAtEntering(self.__salinity, salinity, float, "the salinity must be a float number")
+        self.__salinity = salinity
+
+    def volumetricMassEvolutionDefinition(self, dependancy):
+        def a():
+            pass
+        if type(dependancy) is not type(a) :
+            raise TypeError("the fluid dependency must be a function")
+        else :
+            try :
+                a = dependancy(temperature = 20, pressure = 10, salinity = 0.2)
+            except TypeError :
+                raise TypeError("the fluid dependency must be a function of temperature, pressure and salinity")
+            def volumetricMassEvolutionDefinition(temperature, pressure, salinity = None, modify = True):
+                if salinity == None:
+                    salinity = self.salinity
+                if modify :
+                    self.volumetricMass = dependancy(temperature, pressure, salinity)
+                return dependancy(temperature, pressure, salinity)
+            self.volumetricMassEvolution = volumetricMassEvolutionDefinition
+    
+    def dynamicViscosityEvolutionDefinition(self, dependancy):
+        def a():
+            pass
+        if type(dependancy) is not type(a) :
+            raise TypeError("the fluid dependency must be a function")
+        else :
+            try :
+                a = dependancy(temperature = 20, pressure = 10, salinity = 0.2)
+            except TypeError :
+                raise TypeError("the fluid dependency must be a function of temperature, pressure and salinity")
+            def dynamicViscosityEvolutionDefinition(temperature, pressure, salinity = None, modify = True):
+                if salinity == None:
+                    salinity = self.salinity
+                if modify :
+                    self.dynamicViscosity = dependancy(temperature, pressure, salinity)
+                return dependancy(temperature, pressure, salinity)
+            self.dynamicViscosityEvolution = dynamicViscosityEvolutionDefinition
+
+    def thermicCapacityEvolutionDefinition(self, dependancy):
+        def a():
+            pass
+        if type(dependancy) is not type(a) :
+            raise TypeError("the fluid dependency must be a function")
+        else :
+            try :
+                a = dependancy(temperature = 20, pressure = 10, salinity = 0.2)
+            except TypeError :
+                raise TypeError("the fluid dependency must be a function of temperature, pressure and salinity")
+            def thermicCapacityEvolutionDefinition(temperature, pressure, salinity = None, modify = True):
+                if salinity == None:
+                    salinity = self.salinity
+                if modify :
+                    self.thermicCapacity = dependancy(temperature, pressure, salinity)
+                return dependancy(temperature, pressure, salinity)
+            self.thermicCapacityEvolution = thermicCapacityEvolutionDefinition
+
+    def thermicConductivityEvolutionDefinition(self, dependancy):
+        def a():
+            pass
+        if type(dependancy) is not type(a) :
+            raise TypeError("the fluid dependency must be a function")
+        else :
+            try :
+                a = dependancy(temperature = 20, pressure = 10, salinity = 0.2)
+            except TypeError :
+                raise TypeError("the fluid dependency must be a function of temperature, pressure and salinity")
+            def thermicConductivityEvolutionDefinition(temperature, pressure, salinity = None, modify = True):
+                if salinity == None:
+                    salinity = self.salinity
+                if modify :
+                    self.thermicConductivity = dependancy(temperature, pressure, salinity)
+                return dependancy(temperature, pressure, salinity)
+            self.thermicConductivityEvolution = thermicConductivityEvolutionDefinition
+
+    def volumetricMassEvolution(temperature, pressure, salinity = None, modify = True):
+        return None
+
+    def dynamicViscosityEvolution(temperature, pressure, salinity = None, modify = True):
+        return None
+
+    def thermicCapacityEvolution(temperature, pressure, salinity = None, modify = True):
+        return None 
+
+    def thermicConductivityEvolution(temperature, pressure, salinity = None, modify = True):
+        return None
 
     
     

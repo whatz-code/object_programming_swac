@@ -16,12 +16,40 @@ from Flow import Flow
 from Graphe import Edge, Node
 from Calculus import Resolve
 from HydraulicThermicCalculus import HydraulicThermicCalculus
-from Fluid import Fluid
+from Fluid.Fluid import Fluid
 eau = Fluid()
+
+class Pole(Node):
+    def __init__(self,name = None, pressure = None, temperature = None, successors = []) : 
+        Node.__init__(self, name = name, successors = successors)
+        if (type(temperature) is not float or type(pressure) is not float) and (type(temperature) is not type(None) or type(pressure) is not type(None)):
+            raise TypeError("the temperature and the pressure must be float numbers")
+        self.__pressure = pressure
+        self.__temperature = temperature
+
+    @property 
+    def pressure(self): 
+        return self.__pressure
+
+    @pressure.setter 
+    def pressure(self,pressure): 
+        if type(pressure) is not float :
+            raise  TypeError("the pressure must be a float number")
+        self.__pressure = pressure
+    
+    @property 
+    def temperature(self): 
+        return self.__temperature
+
+    @temperature.setter 
+    def temperature(self,temperature): 
+        if type(temperature) is not float :
+            raise  TypeError("the temperature must be a float number")
+        self.__temperature = temperature
 
 class Dipole(Edge):
     #l'initialisation de la classe : 
-    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamPole = None, upstreamPole = None, flow = Flow(), variables = [False, False, False]) : 
+    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamPole = Pole('downstream pole'), upstreamPole = Pole('upstream Pole'), flow = Flow(), variables = [False, False, False]) : 
         if type(downstreamPole) is not Pole or type(upstreamPole) is not Pole:
             raise TypeError("downstreamPole and upstreamPole must be a pole")
         Edge.__init__(self, name, [downstreamPole, upstreamPole])
@@ -37,13 +65,6 @@ class Dipole(Edge):
         if type(crossSectionalArea) is not type(None):
             if crossSectionalArea <= 0:
                 raise ValueError('cross sectionnal area must be strictly positive')
-        if type(flowRateEstimation) is not float and type(flowRateEstimation) is not type(None):
-            raise TypeError ("the maximal flow rate must be a float number")
-        if type(flowRateEstimation) is not type(None):
-            if flowRateEstimation <=0:
-                raise ValueError("the maximal flow rate must be strictly positive")
-        if type(pressureDifferenceEstimation) is not float and type(pressureDifferenceEstimation) is not type(None):
-            raise TypeError ("the maximal flow rate must be a float number")
         if type(variables) is not list:
             raise TypeError("the variables should be a list of 3 booleans")
         if len(variables) != 3:
@@ -172,7 +193,7 @@ class Pipe(Dipole):
     
     #l'initialisation de la classe : 
 
-    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50.0, downstreamPole = None, upstreamPole = None, flow = Flow()) : 
+    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50.0, downstreamPole = Pole('downstream pole'), upstreamPole = Pole('upstream Pole'), flow = Flow()) : 
         Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4, downstreamPole, upstreamPole, flow, variables=[True, True, False])
         if type(rugosity) is not float :
             raise TypeError('rugosity has to be a float number')
@@ -184,7 +205,7 @@ class Pipe(Dipole):
             raise ValueError('length must be positive')
         self.__rugosity = rugosity
         self.__length = length
-        self.flow.temperatureDifference = 0
+        self.flow.temperatureDifference = 0.0
     
     @property 
     def rugosity(self): 
@@ -244,7 +265,7 @@ class Pipe(Dipole):
                 raise ValueError("the reynolds number must be strictly positive")
         
         def turbulent(reynoldsNumber, rugosity, hydraulicDiameter):
-            Inconnue0 = 100 #le point fixe de la fonction g définit sur la ligne suivante correspond à 1/sqrt(coefficient de perte de charge)
+            Inconnue0 = 1 #le point fixe de la fonction g définit sur la ligne suivante correspond à 1/sqrt(coefficient de perte de charge)
             def g(Inconnue):
                 return -2 * log10(2.51 / reynoldsNumber * Inconnue + rugosity / (3.7 * hydraulicDiameter))
             Inconnue = Resolve.fixePointResolution(g, Inconnue0) 
@@ -256,7 +277,7 @@ class Pipe(Dipole):
         if reynoldsNumber >= 2000 and reynoldsNumber <=4000 :
             coefficient = (reynoldsNumber - 2000)/2000
             return (1-coefficient) * laminar(reynoldsNumber) * length / hydraulicDiameter + coefficient * turbulent(reynoldsNumber,rugosity,hydraulicDiameter) * length / hydraulicDiameter
-        else :
+        if reynoldsNumber > 4000:
             return turbulent(reynoldsNumber,rugosity,hydraulicDiameter) * length / hydraulicDiameter
 
     def caracteristic(self, flowRate = None, fluid = None, flowRateUnity = "m3/s", pressureUnity = "Pa"):
@@ -275,8 +296,8 @@ class Pipe(Dipole):
 
                       
 class PlateHeatExchangerSide(Dipole):
-    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1.0, hydraulicCorrectingFactor = 1.0, thermicCorrectingFactor = 1, downstreamPole = None, upstreamPole = None, flow = Flow()) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow, flowRateEstimation, pressureDifferenceEstimation, variables=[True, True, True])
+    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1, hydraulicCorrectingFactor = 1.0, thermicCorrectingFactor = 1.0, downstreamPole = Pole('downstream pole'), upstreamPole = Pole('upstream Pole'), flow = Flow()) : 
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow, variables=[True, True, True])
         if type(angle) is not float:
             raise TypeError("the pattern angle must be a float number")
         if angle <0 or angle >90:
@@ -363,7 +384,7 @@ class PlateHeatExchangerSide(Dipole):
         self.__init__(self.name,self.hydraulicDiameter,self.crossSectionalArea,self.angle,self.length,self.Npasse,hydraulicCorrectingFactor,self.thermicCorrectingFactor, self.downstreamPole, self.upstreamPole, self.flow)
 
     
-    def hydraulicCorrelation(self, reynoldsNumber, length = None, angle = None, Npasse = None, hydraulicDiameter = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09): #correspond à la hydraulicCorrelation de Martin
+    def hydraulicCorrelation(self, reynoldsNumber, length = None, angle = None, Npasse = None, hydraulicDiameter = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09, hydraulicCorrectingFactor = 1.0): #correspond à la hydraulicCorrelation de Martin
         if length == None:
             length = self.length
         if angle == None:
@@ -389,10 +410,6 @@ class PlateHeatExchangerSide(Dipole):
             raise TypeError("the hydraulic correcting factor must be a strictly positive float close to 1")
         if hydraulicCorrectingFactor <= 0 :
             raise TypeError("the hydraulic correcting factor must be a strictly positive float close to 1")
-        if type(thermicCorrectingFactor) is not float:
-            raise TypeError("the thermic correcting factor must be a strictly positive float close to 1")
-        if thermicCorrectingFactor <= 0 :
-            raise TypeError("the thermic correcting factor must be a strictly positive float close to 1")
         if type(reynoldsNumber) is not float:
             raise TypeError("the reynolds number must be a strictly positive float")
         if reynoldsNumber <=0 :
@@ -419,7 +436,7 @@ class PlateHeatExchangerSide(Dipole):
             return cos(angle) / (parameterB * tan(angle) + parameterC * sin(angle) + f0 / cos(angle)) ** (1/2) + (1 - cos(angle)) / (parameterA * f1) ** (1/2)
 
         if reynoldsNumber < 2000 :
-            return laminar(reynoldsNumber) * length / hydraulicDiameter * Npasse
+            return laminar(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse
         if reynoldsNumber >= 2000 and reynoldsNumber <=4000 :
             coefficient = (reynoldsNumber - 2000)/2000
             return (1-coefficient) * laminar(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse + coefficient * turbulent(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse
@@ -441,7 +458,7 @@ class PlateHeatExchangerSide(Dipole):
 
         return - HydraulicThermicCalculus.caracteristic(self, flow, fluid, flowRateUnity, pressureUnity) * hydraulicCorrectingFactor
 
-    def thermicCorrelation(self, reynoldsNumber, prandtlNumber, length = None, angle = None, Npasse = None, hydraulicDiameter = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09, thermicCorrectingFactor = 1):
+    def thermicCorrelation(self, reynoldsNumber, prandtlNumber, length = None, angle = None, Npasse = None, hydraulicDiameter = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09, thermicCorrectingFactor = 1.0):
         if angle == None:
             angle = self.angle 
         if length == None:
@@ -467,10 +484,6 @@ class PlateHeatExchangerSide(Dipole):
             raise TypeError("the number of passe must be a positive integer superior to 1")
         if Npasse < 1:
             raise ValueError("the number of passe must be a positive integer superior to 1")
-        if type(hydraulicCorrectingFactor) is not float:
-            raise TypeError("the hydraulic correcting factor must be a strictly positive float close to 1")
-        if hydraulicCorrectingFactor <= 0 :
-            raise TypeError("the hydraulic correcting factor must be a strictly positive float close to 1")
         if type(thermicCorrectingFactor) is not float:
             raise TypeError("the thermic correcting factor must be a strictly positive float close to 1")
         if thermicCorrectingFactor <= 0 :
@@ -491,39 +504,12 @@ class PlateHeatExchangerSide(Dipole):
         
 class IdealPump(Dipole):
     #l'initialisation de la classe : 
-    def __init__(self,name = None, hydraulicDiameter = None,crossSectionalArea = None ,flowRate = None, fluid = fluid, inputTemperature = None, downstreamPole = None, upstreamPole = None) : 
+    def __init__(self,name = None, hydraulicDiameter = None,crossSectionalArea = None ,flowRate = None, fluid = Fluid(), inputTemperature = None, downstreamPole = None, upstreamPole = None) : 
         Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(fluid = fluid, flowRate = flowRate, inputTemperature = inputTemperature), variables=[False,True, False])
         downstreamPole.temperature = inputTemperature
-        self.flow.temperatureDifference = 0
+        self.flow.temperatureDifference = 0.0
 
 
-class Pole(Node):
-    def __init__(self,name = None, pressure = None, temperature = None, successors = []) : 
-        Node.__init__(self, name = name, successors = successors)
-        if (type(temperature) is not float or type(pressure) is not float) and (type(temperature) is not type(None) or type(pressure) is not type(None)):
-            raise TypeError("the temperature and the pressure must be float numbers")
-        self.__pressure = pressure
-        self.__temperature = temperature
-
-    @property 
-    def pressure(self): 
-        return self.__pressure
-
-    @pressure.setter 
-    def pressure(self,pressure): 
-        if type(pressure) is not float :
-            raise  TypeError("the pressure must be a float number")
-        self.__pressure = pressure
-    
-    @property 
-    def temperature(self): 
-        return self.__temperature
-
-    @temperature.setter 
-    def temperature(self,temperature): 
-        if type(temperature) is not float :
-            raise  TypeError("the temperature must be a float number")
-        self.__temperature = temperature
 
 
 

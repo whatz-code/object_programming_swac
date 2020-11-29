@@ -1,6 +1,6 @@
 import sys
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Fluid")
-from Fluid import Fluid
+from Fluid.Fluid import Fluid
 
 class Flow:
     def __init__(self,flowRate = None, pressureDifference = None, inputTemperature = None, averageTemperature = None, outletTemperature = None, fluid = Fluid(), temperatureDifference = None) : 

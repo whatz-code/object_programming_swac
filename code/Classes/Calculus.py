@@ -5,10 +5,23 @@ from scipy.linalg import norm
 from scipy.optimize import curve_fit
 class Resolve:
     #pour utiliser une telle méthode il faut s'assurer que l'on ait suffisament proche de la solution et que abs(g'(solution)+relaxation)<abs(1+relaxation)
-    def fixePointResolution(g, X0, relaxation = 0, seuil = 0.0000001, iterationMax = 100): #g est la fonction du point fixe g(x) = x
+    def fixePointResolution(g, X0, relaxation = 0, seuil = 0.000001, iterationMax = 150): #g est la fonction du point fixe g(x) = x
         iteration = 0
-        Xn = X0
-        Xn1 = X0+1
+        array = True
+        if type(X0) is  list:
+            Xn = X0
+            Xn1 = Xn[:]
+            Xn1[0] = Xn1[0] + 1
+
+        else :
+            Xn = X0
+            Xn1 = Xn
+            Xn1 = Xn1+1
+            array = False
+
+        Xn = np.array(Xn)
+        Xn1 = np.array(Xn1)
+
         while iteration < iterationMax and norm(Xn1 - Xn) > seuil :
             Xn = Xn1
             Xn1 = (g(Xn) + relaxation * Xn)/ (1 + relaxation)
@@ -16,6 +29,8 @@ class Resolve:
         if iteration == iterationMax :
             raise ValueError("don't converge")
         else :
+            if not array:
+                Xn1 = float(Xn1)
             return Xn1
     fixePointResolution = staticmethod(fixePointResolution)
 

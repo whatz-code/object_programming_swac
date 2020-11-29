@@ -27,8 +27,7 @@ class HydraulicCircuit(Graph):
 
         testingVariables = []
         for dipole in self.dipoles:       
-            testingVariables.append(self.dipole.variables)
-        
+            testingVariables.append(dipole.variables)
         self.__testingVariables = testingVariables
         self.__nodesLawFunction = None
         self.__loopLawFunction = None
@@ -119,9 +118,8 @@ class HydraulicCircuit(Graph):
             if variablesDipole[1]:
                 dipole.flow.pressureDifference = None
             if variablesDipole[2]:
-                dipole.flow.inputTemperature = None
-            if variablesDipole[3]:
-                dipole.flow.outletTemperature = None
+                dipole.flow.temperatureDifference = None
+
 
 
 

@@ -1,6 +1,6 @@
 import sys
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Fluid")
-from Fluid import Fluid 
+from Fluid.Fluid import Fluid 
 eau = Fluid()
 class HydraulicThermicCalculus :
     #méthode permettant de calculer le nombre de Reynolds ou de tirer une autre variable si le nombre de Reynolds est connu
