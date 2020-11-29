@@ -3,7 +3,7 @@ sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python
 from Fluid import Fluid
 
 class Flow:
-    def __init__(self,flowRate = None, pressureDifference = None, inputTemperature = None, averageTemperature = None, outletTemperature = None, fluid = Fluid()) : 
+    def __init__(self,flowRate = None, pressureDifference = None, inputTemperature = None, averageTemperature = None, outletTemperature = None, fluid = Fluid(), temperatureDifference = None) : 
         
         if type(flowRate) is float or type(flowRate) is type(None):
             self.__flowRate = flowRate
@@ -30,6 +30,15 @@ class Flow:
         else :
             raise TypeError("the outlet temperature must be a float or a none type")
         
+        if type(temperatureDifference) is float or type(temperatureDifference) is type(None):
+            self.__temperatureDifference = temperatureDifference
+        else :
+            raise TypeError("the temperature difference must be a float or a none type")
+
+
+
+
+
         eau = Fluid()
         if isinstance(fluid,Fluid):
             self.__fluid = fluid
@@ -90,6 +99,17 @@ class Flow:
             self.__outletTemperature = outletTemperature
         else :
             raise TypeError("the outlet temperature must be a float or a none type")
+
+    @property 
+    def temperatureDifference(self): 
+        return self.__temperatureDifference
+
+    @temperatureDifference.setter 
+    def temperatureDifference(self,temperatureDifference): 
+        if type(temperatureDifference) is float or type(temperatureDifference) is type(None):
+            self.__temperatureDifference = temperatureDifference
+        else :
+            raise TypeError("the temperature difference must be a float or a none type")
 
     @property 
     def fluid(self): 

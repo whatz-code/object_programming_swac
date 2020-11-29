@@ -21,34 +21,13 @@ class HydraulicCircuit(Graph):
                 raise TypeError("poles must be a list of dipoles")
         Graph.__init__(self, edges = dipoles, nodes = poles)
         self.__name = name
-        self.__variables = ['flowRate', 'pressureDifference', 'inputTemperature', 'outletTemperature']
-        testingVariables = []
+        self.__variables = ['flowRate', 'pressureDifference', 'temperatureDifference']
         self.__dipoles = self.edges
         self.__poles = self.nodes
-    
-        for dipole in self.dipoles:
-            variablesDipole = []
-            if dipole.flow.flowRate == None:
-                variablesDipole.append(True)
-            else:
-                variablesDipole.append(False)
 
-            if dipole.flow.pressureDifference == None:
-                variablesDipole.append(True)
-            else:
-                variablesDipole.append(False)
-            
-            if dipole.flow.inputTemperature == None:
-                variablesDipole.append(True)
-            else:
-                variablesDipole.append(False)
-            
-            if dipole.flow.outletTemperature == None:
-                variablesDipole.append(True)
-            else:
-                variablesDipole.append(False)
-            
-            testingVariables.append(variablesDipole)
+        testingVariables = []
+        for dipole in self.dipoles:       
+            testingVariables.append(self.dipole.variables)
         
         self.__testingVariables = testingVariables
         self.__nodesLawFunction = None
@@ -72,7 +51,7 @@ class HydraulicCircuit(Graph):
 
     @name.setter 
     def name(self,name): 
-        self.__name = name
+        self.__name = namflowRatee
 
     @property 
     def dipoles(self): 
@@ -130,34 +109,30 @@ class HydraulicCircuit(Graph):
     def hydraulicSystem(self,hydraulicSystem): 
         self.__hydraulicSystem = hydraulicSystem
     
+    def resetVariables(self):
+        N = len(self.dipoles)
+        for i in range(N):
+            dipole = self.dipoles[i]
+            variablesDipole = self.testingVariables[i]
+            if variablesDipole[0]:
+                dipole.flow.flowRate = None
+            if variablesDipole[1]:
+                dipole.flow.pressureDifference = None
+            if variablesDipole[2]:
+                dipole.flow.inputTemperature = None
+            if variablesDipole[3]:
+                dipole.flow.outletTemperature = None
+
+
 
     def addDipole(self, dipole, name = None):
+        if not(isinstance(dipole,Dipole)):
+                raise TypeError("dipole must a dipole object")
+
         pole1 = dipole.downstreamPole
         pole2 = dipole.upstreamPole
         self.newEdge(pole1, pole2, name = name)
-
-        variablesDipole = []
-        if dipole.flow.flowRate == None:
-            variablesDipole.append(True)
-        else:
-            variablesDipole.append(False)
-
-        if dipole.flow.pressureDifference == None:
-            variablesDipole.append(True)
-        else:
-            variablesDipole.append(False)
-        
-        if dipole.flow.inputTemperature == None:
-            variablesDipole.append(True)
-        else:
-            variablesDipole.append(False)
-        
-        if dipole.flow.outletTemperature == None:
-            variablesDipole.append(True)
-        else:
-            variablesDipole.append(False)
-
-        self.testingVariables.append(variablesDipole)
+        self.testingVariables.append(dipole.variables)
 
     def delDipole(self, dipole):
         self.delEdge( dipole, by = "edge")
@@ -194,19 +169,19 @@ class HydraulicCircuit(Graph):
         (functionToZero ,XToDipolesFlowRateOnly, XToDipolesUnknownPressureOnly,XToDipolesUnknownPressureAndUnknownFlowRate) = hydraulicSystem
         X0 = []
         for key in XToDipolesFlowRateOnly:
-            flowRateEstimation = self.dipoles[XToDipolesFlowRateOnly[key]].flowRateEstimation
+            flowRateEstimation = self.dipoles[XToDipolesFlowRateOnly[key]].flow.flowRate
             if flowRateEstimation != None:
                 X0.append(flowRateEstimation)
             else :
                 X0.append(flowRateMagnitude)
         for key in XToDipolesUnknownPressureAndUnknownFlowRate:
-            flowRateEstimation = self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].flowRateEstimation
+            flowRateEstimation = self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].flow.flowRate
             if flowRateEstimation != None:
                 X0.append(flowRateEstimation)
             else :
                 X0.append(flowRateMagnitude)
         for key in XToDipolesUnknownPressureOnly:
-            pressureDifferenceEstimation = self.dipoles[XToDipolesUnknownPressureOnly[key]].pressureDifferenceEstimation
+            pressureDifferenceEstimation = self.dipoles[XToDipolesUnknownPressureOnly[key]].flow.pressureDifference
             if pressureDifferenceEstimation != None:
                 X0.append(pressureDifferenceEstimation)
             else :

@@ -21,7 +21,7 @@ eau = Fluid()
 
 class Dipole(Edge):
     #l'initialisation de la classe : 
-    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamPole = None, upstreamPole = None, flow = Flow(), flowRateEstimation = None, pressureDifferenceEstimation = None) : 
+    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamPole = None, upstreamPole = None, flow = Flow(), variables = [False, False, False]) : 
         if type(downstreamPole) is not Pole or type(upstreamPole) is not Pole:
             raise TypeError("downstreamPole and upstreamPole must be a pole")
         Edge.__init__(self, name, [downstreamPole, upstreamPole])
@@ -44,12 +44,18 @@ class Dipole(Edge):
                 raise ValueError("the maximal flow rate must be strictly positive")
         if type(pressureDifferenceEstimation) is not float and type(pressureDifferenceEstimation) is not type(None):
             raise TypeError ("the maximal flow rate must be a float number")
+        if type(variables) is not list:
+            raise TypeError("the variables should be a list of 3 booleans")
+        if len(variables) != 3:
+            raise TypeError("the variables should be a list of 3 booleans")
+        for variable in variables :
+            if type(variable) is not bool: 
+                raise TypeError("the variables should be a list of 3 booleans")
         self.__name = name
         self.__hydraulicDiameter = hydraulicDiameter
         self.__crossSectionalArea = crossSectionalArea
         self.__flow = flow
-        self.__flowRateEstimation = flowRateEstimation
-        self.__pressureDifferenceEstimation = pressureDifferenceEstimation
+        self.__variables = variables
     @property 
     def name(self): 
         return self.__name
@@ -127,27 +133,20 @@ class Dipole(Edge):
         self.nodes[1] = upstreamPole
 
     @property 
-    def flowRateEstimation(self): 
-        return self.__flowRateEstimation
+    def variables(self): 
+        return self.__variables
 
-    @flowRateEstimation.setter 
-    def flowRateEstimation(self,flowRateEstimation): 
-        if type(flowRateEstimation) is not float and type(flowRateEstimation) is not type(None):
-            raise TypeError ("the maximal flow rate must be a float number")
-        if type(flowRateEstimation) is not type(None):
-            if flowRateEstimation <=0:
-                raise ValueError("the maximal flow rate must be strictly positive")
-        self.__flowRateEstimation = flowRateEstimation
-
-    @property 
-    def pressureDifferenceEstimation(self): 
-        return self.__pressureDifferenceEstimation
-
-    @pressureDifferenceEstimation.setter 
-    def pressureDifferenceEstimation(self,pressureDifferenceEstimation): 
-        if type(pressureDifferenceEstimation) is not float and type(pressureDifferenceEstimation) is not type(None):
-            raise TypeError ("the maximal flow rate must be a float number")
-        self.__pressureDifferenceEstimation = pressureDifferenceEstimation
+    @variables.setter 
+    def variables(self,variables): 
+        if type(variables) is not list:
+            raise TypeError("the variables should be a list of 3 booleans")
+        if len(variables) != 3:
+            raise TypeError("the variables should be a list of 3 booleans")
+        for variable in variables :
+            if type(variable) is not bool: 
+                raise TypeError("the variables should be a list of 3 booleans")
+        self.__variables = variables
+    
 
     def hydraulicCorrelation(self, reynoldsNumber) :
         if type(reynoldsNumber) is float:
@@ -173,8 +172,8 @@ class Pipe(Dipole):
     
     #l'initialisation de la classe : 
 
-    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50.0, downstreamPole = None, upstreamPole = None, flow = Flow(), flowRateEstimation = None, pressureDifferenceEstimation = None) : 
-        Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4, downstreamPole, upstreamPole, flow, flowRateEstimation, pressureDifferenceEstimation)
+    def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50.0, downstreamPole = None, upstreamPole = None, flow = Flow()) : 
+        Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4, downstreamPole, upstreamPole, flow, variables=[True, True, False])
         if type(rugosity) is not float :
             raise TypeError('rugosity has to be a float number')
         if rugosity < 0:
@@ -185,6 +184,7 @@ class Pipe(Dipole):
             raise ValueError('length must be positive')
         self.__rugosity = rugosity
         self.__length = length
+        self.flow.temperatureDifference = 0
     
     @property 
     def rugosity(self): 
@@ -275,8 +275,8 @@ class Pipe(Dipole):
 
                       
 class PlateHeatExchangerSide(Dipole):
-    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1.0, hydraulicCorrectingFactor = 1.0, thermicCorrectingFactor = 1, downstreamPole = None, upstreamPole = None, flow = Flow(), flowRateEstimation = None, pressureDifferenceEstimation = None) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow, flowRateEstimation, pressureDifferenceEstimation)
+    def __init__(self,name = 'Plate Heat-exchanger side',hydraulicDiameter = None, crossSectionalArea = None, angle = None, length = None, Npasse = 1.0, hydraulicCorrectingFactor = 1.0, thermicCorrectingFactor = 1, downstreamPole = None, upstreamPole = None, flow = Flow()) : 
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow, flowRateEstimation, pressureDifferenceEstimation, variables=[True, True, True])
         if type(angle) is not float:
             raise TypeError("the pattern angle must be a float number")
         if angle <0 or angle >90:
@@ -491,9 +491,10 @@ class PlateHeatExchangerSide(Dipole):
         
 class IdealPump(Dipole):
     #l'initialisation de la classe : 
-    def __init__(self,name = None, hydraulicDiameter = None,crossSectionalArea = None ,flowRate = None, downstreamPole = None, upstreamPole = None, pressureDifferenceEstimation = None) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(flowRate = flowRate), pressureDifferenceEstimation= pressureDifferenceEstimation)
-
+    def __init__(self,name = None, hydraulicDiameter = None,crossSectionalArea = None ,flowRate = None, fluid = fluid, inputTemperature = None, downstreamPole = None, upstreamPole = None) : 
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(fluid = fluid, flowRate = flowRate, inputTemperature = inputTemperature), variables=[False,True, False])
+        downstreamPole.temperature = inputTemperature
+        self.flow.temperatureDifference = 0
 
 
 class Pole(Node):
