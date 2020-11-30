@@ -6,28 +6,23 @@ class Fluid:
     def __init__(self,name = 'eau',volumetricMass = float(1000),dynamicViscosity = 0.001,thermicCapacity = float(4150),thermicConductivity = 0.6) : 
         self.__name = name
         
-        self.__volumetricMass = None
-        typeErrorAtEntering(self.__volumetricMass, volumetricMass, float, "the volumetric mass must be a float number")
+        typeErrorAtEntering( volumetricMass, message= "the volumetric mass must be a float number")
         if volumetricMass < 0:
             raise ValueError('volumetric mass must be positive')
         self.__volumetricMass = volumetricMass
 
-        self.__dynamicViscosity = None
-        typeErrorAtEntering(self.__dynamicViscosity, dynamicViscosity, float, "the dynamic viscosity must be a float number")
+        typeErrorAtEntering(dynamicViscosity, message = "the dynamic viscosity must be a float number")
         if dynamicViscosity < 0:
             raise ValueError('dynamic viscosity must be positive')
         self.__dynamicViscosity = dynamicViscosity
         
-
-        self.__thermicCapacity = None
-        typeErrorAtEntering(self.__thermicCapacity, thermicCapacity, float, "the thermic capacity must be a float number")
-        if volumetricMass < 0:
+        typeErrorAtEntering( thermicCapacity, message = "the thermic capacity must be a float number")
+        if thermicCapacity < 0:
             raise ValueError('thermic capacity must be positive')
         self.__thermicCapacity = thermicCapacity
 
-        self.__thermicConductivity = None
-        typeErrorAtEntering(self.__thermicConductivity, thermicConductivity, float, "the thermic conductivity must be a float number")
-        if volumetricMass < 0:
+        typeErrorAtEntering( thermicConductivity, message = "the thermic conductivity must be a float number")
+        if thermicConductivity < 0:
             raise ValueError('thermic conductivity must be positive')
         self.__thermicConductivity = thermicConductivity
 
@@ -46,7 +41,7 @@ class Fluid:
 
     @volumetricMass.setter 
     def volumetricMass(self,volumetricMass):
-        typeErrorAtEntering(self.__volumetricMass, volumetricMass, float, "the volumetric mass must be a float number")
+        typeErrorAtEntering( volumetricMass, message= "the volumetric mass must be a float number")
         if volumetricMass < 0:
             raise ValueError('volumetric mass must be positive')
         self.__volumetricMass = volumetricMass
@@ -57,7 +52,7 @@ class Fluid:
 
     @dynamicViscosity.setter 
     def dynamicViscosity(self,dynamicViscosity): 
-        typeErrorAtEntering(self.__dynamicViscosity, dynamicViscosity, float, "the volumetric mass must be a float number")
+        typeErrorAtEntering(dynamicViscosity, message = "the dynamic viscosity must be a float number")
         if dynamicViscosity < 0:
             raise ValueError('dynamic viscosity must be positive')
         self.__dynamicViscosity = dynamicViscosity
@@ -68,7 +63,7 @@ class Fluid:
 
     @thermicCapacity.setter 
     def thermicCapacity(self,thermicCapacity): 
-        typeErrorAtEntering(self.__thermicCapacity, thermicCapacity, float, "the volumetric mass must be a float number")
+        typeErrorAtEntering( thermicCapacity, message = "the thermic capacity must be a float number")
         if thermicCapacity < 0:
             raise ValueError('thermic capacity must be positive')
         self.__thermicCapacity = thermicCapacity
@@ -79,9 +74,9 @@ class Fluid:
 
     @thermicConductivity.setter 
     def thermicConductivity(self,thermicConductivity): 
-        typeErrorAtEntering(self.__thermicConductivity, thermicConductivity, float, "the volumetric mass must be a float number")
+        typeErrorAtEntering( thermicConductivity, message = "the thermic conductivity must be a float number")
         if thermicConductivity < 0:
-            raise ValueError('volumetric mass must be positive')
+            raise ValueError('thermic conductivity must be positive')
         self.__thermicConductivity = thermicConductivity
 
     def volumetricMassEvolutionDefinition(self, dependancy):

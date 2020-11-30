@@ -1,8 +1,8 @@
 import sys
-sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes")
+sys.path.append("./Classes")
 from Calculus import Resolve
-from Dipole import Pipe, Dipole, PlateHeatExchangerSide, IdealPump, Pole
-from Graphe import Graph, Node, Edge, Queue
+from DipoleFolder.Dipole import Pipe, Dipole, PlateHeatExchangerSide, IdealPump, Pole
+from GraphFolder.Graphe import Graph, Node, Edge, Queue
 from matplotlib import numpy as np
 class HydraulicCircuit(Graph):
     #l'initialisation de la classe : 

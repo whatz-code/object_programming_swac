@@ -7,7 +7,7 @@ from math import sin
 from math import tan
 import matplotlib.pyplot as plt
 import sys
-sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes")
+sys.path.append("./Classes")
 import numpy as np
 from FlowFolder.Flow import Flow
 from GraphFolder.Graphe import Edge, Node
@@ -15,6 +15,8 @@ from Calculus import Resolve
 from HydraulicThermicCalculus import HydraulicThermicCalculus
 from FluidFolder.Fluid import Fluid
 from Calculus import DataAnalysis
+import ExceptionsAndErrors as ex
+
 eau = Fluid()
 
 class Pole(Node):
@@ -518,19 +520,32 @@ class IdealPump(Dipole):
     def __init__(self,name = 'Ideal Pump', hydraulicDiameter = None, crossSectionalArea = None ,flowRate = None, fluid = Fluid(), inputTemperature = None, downstreamPole = Pole("downstream pole"), upstreamPole = Pole("upstream Pole")) : 
         Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(fluid = fluid, flowRate = flowRate, inputTemperature = inputTemperature), variables=[False,True, False])
         downstreamPole.temperature = inputTemperature
+        self.flow.inputTemperature = inputTemperature
         self.flow.temperatureDifference = 0.0
 
 
 class Pump(Dipole):
     #l'initialisation de la classe : 
-    def __init__(self,name = 'Pump', hydraulicDiameter = None, crossSectionalArea = None ,flowRates = [], overPressures = [], fluid = Fluid(), inputTemperature = None, inputTemperature = None, downstreamPole = Pole("downstream pole"), upstreamPole = Pole("upstream Pole"), temperatureDifference = 0.0) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(fluid = fluid, flowRate = flowRate, inputTemperature = inputTemperature), variables=[False,True, False])
-        if type(flowRates) is not list or type(overPressures) is not list :
+    def __init__(self,name = 'Pump', hydraulicDiameter = None, crossSectionalArea = None ,flowRates = [], overPressures = [], fluid = Fluid(), inputTemperature = None, downstreamPole = Pole("downstream pole"), upstreamPole = Pole("upstream Pole"), temperatureDifference = 0.0) : 
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(fluid = fluid, inputTemperature = inputTemperature), variables=[True,True, False])
+        if (type(flowRates) is not list and not(isinstance(flowRates,np.ndarray))) or (type(overPressures) is not list and not(isinstance(overPressures,np.ndarray))):
             raise TypeError('flowRates and overPressures must be a list of functionnement points')
         downstreamPole.temperature = inputTemperature
         self.flow.temperatureDifference = temperatureDifference
-        self.caracteristic = DataAnalysis.interpolation(flowRates,overPressures)
-
+        def caracteristic(flowRate = None):
+            if flowRate == None:
+                flowRate = self.flow.flowRate
+            ex.typeErrorAtEntering(flowRate, message = 'the flowRate must be a float number')
+            carac = DataAnalysis.interpolation(flowRates,overPressures)
+            return carac(flowRate)
+        self.caracteristic = caracteristic
+            
+    def hydraulicPower(self, flowRate = None):
+        if flowRate == None:
+            flowRate = self.flow.flowRate
+        ex.typeErrorAtEntering(flowRate, message = 'the flowRate must be a float number')
+        #print(self.caracteristic(flowRate), flowRate)
+        return self.caracteristic(flowRate) * flowRate
 
 #tests
 
