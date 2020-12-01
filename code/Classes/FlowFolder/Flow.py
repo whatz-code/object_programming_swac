@@ -42,22 +42,22 @@ class Flow:
             TypeError : it's raised by the function typeErrorAtEntering.
 
         """
-        typeErrorAtEntering(flowRate,types = [float, type(None)], message = "the flow rate must be a float or a None type")
+        typeErrorAtEntering(flowRate,Types = [float, type(None)], message = "the flow rate must be a float or a None type")
         self.__flowRate = flowRate
 
-        typeErrorAtEntering(pressureDifference,types = [float, type(None)], message = "the difference of pressure must be a float number or a None type")
+        typeErrorAtEntering(pressureDifference,Types = [float, type(None)], message = "the difference of pressure must be a float number or a None type")
         self.__pressureDifference = pressureDifference
 
-        typeErrorAtEntering(inputTemperature,types = [float, type(None)], message = "the input temperature must be a float or a None type")
+        typeErrorAtEntering(inputTemperature,Types = [float, type(None)], message = "the input temperature must be a float or a None type")
         self.__inputTemperature = inputTemperature
         
-        typeErrorAtEntering(averageTemperature,types = [float, type(None)], message = "the average temperature must be a float or a None type")
+        typeErrorAtEntering(averageTemperature,Types = [float, type(None)], message = "the average temperature must be a float or a None type")
         self.__averageTemperature = averageTemperature
 
-        typeErrorAtEntering(outletTemperature,types = [float, type(None)], message = "the outlet temperature must be a float or a None type")
+        typeErrorAtEntering(outletTemperature,Types = [float, type(None)], message = "the outlet temperature must be a float or a None type")
         self.__outletTemperature = outletTemperature
         
-        typeErrorAtEntering(flowRate,types = [], instances = [Fluid], message = "the fluid must be a Fluid object")
+        typeErrorAtEntering(flowRate,Types = [], Classes = [Fluid], message = "the fluid must be a Fluid object")
         self.__fluid = fluid
 
 
@@ -68,7 +68,7 @@ class Flow:
 
     @flowRate.setter 
     def flowRate(self,flowRate): 
-        typeErrorAtEntering(flowRate,types = [float, type(None)], message = "the flow rate must be a float or a None type")
+        typeErrorAtEntering(flowRate,Types = [float, type(None)], message = "the flow rate must be a float or a None type")
         self.__flowRate = flowRate
 
     @property 
@@ -78,7 +78,7 @@ class Flow:
 
     @pressureDifference.setter 
     def pressureDifference(self,pressureDifference): 
-        typeErrorAtEntering(pressureDifference,types = [float, type(None)], message = "the difference of pressure must be a float number or a None type")
+        typeErrorAtEntering(pressureDifference,Types = [float, type(None)], message = "the difference of pressure must be a float number or a None type")
         self.__pressureDifference = pressureDifference
 
     @property 
@@ -88,7 +88,7 @@ class Flow:
 
     @inputTemperature.setter 
     def inputTemperature(self,inputTemperature): 
-        typeErrorAtEntering(inputTemperature,types = [float, type(None)], message = "the input temperature must be a float or a None type")
+        typeErrorAtEntering(inputTemperature,Types = [float, type(None)], message = "the input temperature must be a float or a None type")
         self.__inputTemperature = inputTemperature
 
     @property 
@@ -98,7 +98,7 @@ class Flow:
 
     @averageTemperature.setter 
     def averageTemperature(self,averageTemperature): 
-        typeErrorAtEntering(averageTemperature,types = [float, type(None)], message = "the average temperature must be a float or a None type")
+        typeErrorAtEntering(averageTemperature,Types = [float, type(None)], message = "the average temperature must be a float or a None type")
         self.__averageTemperature = averageTemperature
 
     @property 
@@ -108,7 +108,7 @@ class Flow:
 
     @outletTemperature.setter 
     def outletTemperature(self,outletTemperature): 
-        typeErrorAtEntering(outletTemperature,types = [float, type(None)], message = "the outlet temperature must be a float or a None type")
+        typeErrorAtEntering(outletTemperature,Types = [float, type(None)], message = "the outlet temperature must be a float or a None type")
         self.__outletTemperature = outletTemperature
 
     @property 
@@ -118,7 +118,7 @@ class Flow:
 
     @fluid.setter 
     def fluid(self,fluid): 
-        typeErrorAtEntering(flowRate,types = [], instances = [Fluid], message = "the fluid must be a Fluid object")
+        typeErrorAtEntering(flowRate,Types = [], Classes = [Fluid], message = "the fluid must be a Fluid object")
         self.__fluid = fluid
 
 
