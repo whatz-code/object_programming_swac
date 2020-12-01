@@ -1,4 +1,11 @@
-#creation de la classe Dipole
+""" Into the module dipole are created the classes : 
+        - Pole
+        - Dipole
+        - Pipe
+        - PlateHeatExchangerSide
+        - Ideal Pump
+        - Pump
+ """
 from math import log
 from math import pi 
 from math import log10
@@ -8,6 +15,7 @@ from math import tan
 import matplotlib.pyplot as plt
 import sys
 sys.path.append("./Classes")
+sys.path.append(".")
 import numpy as np
 from FlowFolder.Flow import Flow
 from GraphFolder.Graphe import Edge, Node
@@ -15,17 +23,51 @@ from Calculus import Resolve
 from HydraulicThermicCalculus import HydraulicThermicCalculus
 from FluidFolder.Fluid import Fluid
 from Calculus import DataAnalysis
-import ExceptionsAndErrors as ex
+from ExceptionsAndErrors import typeErrorAtEntering
 
 eau = Fluid()
 
 class Pole(Node):
-    def __init__(self,name = None, pressure = None, temperature = None, successors = []) : 
+    def __init__(self,name = None, pressure = None, temperature = None, successors = [], fluid = Fluid()) : 
+        """Class Pole __init__ method : 
+        
+        Note : 
+            The Pole class is used to give the ponctual state of the flow between various dipoles.
+            It's a child of the Node class and so has a important role to play for the definition
+            of the topology of the hydraulic and thermic network. 
+            the __init__ method offers the opportunity to give the attributes of the Pole object.
+
+        Args:
+            pressure (type:float,Nonetype or :obj:np.float64): This parameter indicates the private attribute pressure of the 
+                                    object created from the classe Pole. It represents the pressures between dipoles which are
+                                    associated with the pole object as an attribute.
+                                    unity : Pascal.
+            temperature (type:float,Nonetype or :obj:np.float64): This parameter indicates the private attribute temperature
+                                    of the object created from the classe Pole. It represents the pressures between dipoles which are
+                                    associated with the pole object as an attribute.
+                                    unity : °C
+            successors (type:list of :obj:Pole): This parameter indicates the private attribute successors of the 
+                                    object created from the parent class Node. It represents the other poles linked
+                                    by a dipole where the pole object is the downstream attribute.
+            fluid(:obj: Fluid): This parameter indicates the private attribute fluid of the obkect created from the class Flow. It represents
+                                the fluid which flows between the dipoles the pole object is associated with as an attribtute.
+                                    
+                        
+        Raises : 
+            TypeError : It's raised by the function typeErrorAtEntering when the types and the object
+                    don't match with the type and the object defined.
+
+        """
         Node.__init__(self, name = name, successors = successors)
-        if (type(temperature) is not float or type(pressure) is not float) and (type(temperature) is not type(None) or type(pressure) is not type(None)):
-            raise TypeError("the temperature and the pressure must be float numbers")
+
+        typeErrorAtEntering(pressure,types = [float, type(None)], message = "the pressure must be a float or a None type")
         self.__pressure = pressure
+
+        typeErrorAtEntering(temperature,types = [float, type(None)], message = "the temperature must be a float or a None type")
         self.__temperature = temperature
+
+        typeErrorAtEntering(flowRate,types = [], instances = [Fluid], message = "the fluid must be a Fluid object")
+        self.__fluid = fluid
 
     @property 
     def pressure(self): 
@@ -33,8 +75,7 @@ class Pole(Node):
 
     @pressure.setter 
     def pressure(self,pressure): 
-        if type(pressure) is not float :
-            raise  TypeError("the pressure must be a float number")
+        typeErrorAtEntering(pressure,types = [float, type(None)], message = "the pressure must be a float or a None type")
         self.__pressure = pressure
     
     @property 
@@ -43,16 +84,94 @@ class Pole(Node):
 
     @temperature.setter 
     def temperature(self,temperature): 
-        if type(temperature) is not float :
-            raise  TypeError("the temperature must be a float number")
+        typeErrorAtEntering(temperature,types = [float, type(None)], message = "the temperature must be a float or a None type")
         self.__temperature = temperature
+
+    @property 
+    def fluid(self): 
+        return self.__fluid
+
+    @fluid.setter 
+    def fluid(self,fluid): 
+        typeErrorAtEntering(flowRate,types = [], instances = [Fluid], message = "the fluid must be a Fluid object")
+        self.__fluid = fluid
 
 class Dipole(Edge):
     #l'initialisation de la classe : 
-    def __init__(self,name = 'Dipole',hydraulicDiameter = None,crossSectionalArea = None, downstreamPole = Pole('downstream pole'), upstreamPole = Pole('upstream Pole'), flow = Flow(), variables = [False, False, False]) : 
-        if type(downstreamPole) is not Pole or type(upstreamPole) is not Pole:
-            raise TypeError("downstreamPole and upstreamPole must be a pole")
+    def __init__(self, name = 'Dipole', hydraulicDiameter = None, crossSectionalArea = None, downstreamPole = Pole('downstream pole'), upstreamPole = Pole('upstream Pole'), flow = Flow(), variables = [False, False, False, False]) : 
+        """Class Dipole __init__ method : 
+        
+        Note : 
+            The Dipole class is used to represent the caracteristic of a region where a flow object 
+            flows from one pole where an other pole. It represents for example the geometry of the 
+            region, and how the region can affect the flow, for examples :
+                - by giving are taking pressure
+                - by increasing his temperature or decreasing his temperature (giving thermic power or
+                taking thermic power)
+                - by fixing the flow rate of the flow
+                - ...
+
+            the __init__ method offers the opportunity to give the attributes of the Pole object.
+
+        Args:
+            name( type:any ): 
+                this parameters indicates the private attribute name. This parameter gives 
+                        the user the opportunity to organise his dipole objects.
+
+            hydraulicDiameter (type:float,Nonetype or :obj:np.float64): 
+                This parameter indicates the private attribute hydraulicDiameter of the 
+                dipole object created from the class Dipole. 
+                It represents the caracteristical length in the dipole to computes the 
+                reynolds or other important numbers.
+                unity : m
+
+            crossSectionnalArea (type:float,Nonetype or :obj:np.float64): 
+                This parameter indicates the private attribute crossSectionalArea of the object 
+                created from the Dipole class. 
+                It represents the sectionnal area of the flow, it's an important parameter to compute 
+                the average velocity of the fluid into the dipole.
+                unity : m²
+
+            downstreamPole (:obj:Pole): 
+                This parameter indicates the private attribute downstreamPole of the 
+                object created from the Dipole class. 
+                It represents the pole where the fluid enters into the dipole (or the
+                dipole entry). By default all the states attributes of the object downstreamPole 
+                are undefined (with the None variable).
+
+            upstreamPole (:obj:Pole): 
+                This parameter indicates the private attribute upstreamPole of the 
+                object created from the Dipole class. 
+                It represents the pole where the fluid exits the dipole (or the
+                dipole outlet). By default all the states attributes of the object 
+                upstreamPole are undefined (with the None variable).
+
+            flow(:obj: Flow): 
+                This parameter indicates the private attribute flow of the object created from 
+                the class Dipole. 
+                It represents the state of the flow of the dipole. By default all the states
+                attributes of the object flow are undefined (with the None variable).
+
+            variables(type:list of 4 booleans):
+                This parameter indicates the private attribute variables of the object created from 
+                the class Dipole.    
+                It gives the knowledge of which variables of the flow are fixed : 
+                    - if variables[0] == False : the flow rate is fixed (so flowRate is a variable of the system)
+                    - if variables[1] == False : the difference of pressure is fixed
+                    - if variables[2] == False : the input temperature is fixed
+                    - if variables[3] == False : the outlet temperature is fixed      
+                This attribute is usefull to reduce the unknown variables in the system which has to be 
+                resolved to know the functionnement hydraulic and thermic of the networks
+                        
+        Raises : 
+            TypeError : It's raised by the function typeErrorAtEntering when the types and the object
+                    don't match with the type and the object defined.
+
+        """
+        typeErrorAtEntering(downstreamPole,types = [], instances = [Pole], message = "the downstreamPole must be a float or a None type")
+        typeErrorAtEntering(upstreamPole,types = [], instances = [Pole], message = "the upstreamPole must be a float or a None type")
         Edge.__init__(self, name, [downstreamPole, upstreamPole])
+        
         if not(isinstance(flow,Flow)) and type(flow) is not type(None):
             raise TypeError('flow must be Flow Type')
         if type(hydraulicDiameter) is not float and type(hydraulicDiameter) is not type(None):
@@ -66,12 +185,12 @@ class Dipole(Edge):
             if crossSectionalArea <= 0:
                 raise ValueError('cross sectionnal area must be strictly positive')
         if type(variables) is not list:
-            raise TypeError("the variables should be a list of 3 booleans")
-        if len(variables) != 3:
-            raise TypeError("the variables should be a list of 3 booleans")
+            raise TypeError("the variables should be a list of 4 booleans")
+        if len(variables) != 4:
+            raise TypeError("the variables should be a list of 4 booleans")
         for variable in variables :
             if type(variable) is not bool: 
-                raise TypeError("the variables should be a list of 3 booleans")
+                raise TypeError("the variables should be a list of 4 booleans")
         self.__name = name
         self.__hydraulicDiameter = hydraulicDiameter
         self.__crossSectionalArea = crossSectionalArea
@@ -194,7 +313,7 @@ class Pipe(Dipole):
     #l'initialisation de la classe : 
 
     def __init__(self,name = 'Pipe',hydraulicDiameter = 0.348, rugosity = 0.0005, length = 50.0, downstreamPole = Pole('downstream pole'), upstreamPole = Pole('upstream Pole'), flow = Flow()) : 
-        Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4, downstreamPole, upstreamPole, flow, variables=[True, True, False])
+        Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4, downstreamPole, upstreamPole, flow, variables=[True, True, False, False])
         if type(rugosity) is not float :
             raise TypeError('rugosity has to be a float number')
         if rugosity < 0:
@@ -308,7 +427,7 @@ class PlateHeatExchangerSide(Dipole):
 
  
 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow, variables=[True, True, True])
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow, variables=[True, True, False, False])
         if type(angle) is not float:
             raise TypeError("the pattern angle must be a float number")
         if angle <0 or angle >90:
@@ -518,7 +637,7 @@ class PlateHeatExchangerSide(Dipole):
 class IdealPump(Dipole):
     #l'initialisation de la classe : 
     def __init__(self,name = 'Ideal Pump', hydraulicDiameter = None, crossSectionalArea = None ,flowRate = None, fluid = Fluid(), inputTemperature = None, downstreamPole = Pole("downstream pole"), upstreamPole = Pole("upstream Pole")) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(fluid = fluid, flowRate = flowRate, inputTemperature = inputTemperature), variables=[False,True, False])
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(fluid = fluid, flowRate = flowRate, inputTemperature = inputTemperature), variables=[False,True, True, False])
         downstreamPole.temperature = inputTemperature
         self.flow.inputTemperature = inputTemperature
         self.flow.temperatureDifference = 0.0
@@ -527,7 +646,7 @@ class IdealPump(Dipole):
 class Pump(Dipole):
     #l'initialisation de la classe : 
     def __init__(self,name = 'Pump', hydraulicDiameter = None, crossSectionalArea = None ,flowRates = [], overPressures = [], fluid = Fluid(), inputTemperature = None, downstreamPole = Pole("downstream pole"), upstreamPole = Pole("upstream Pole"), temperatureDifference = 0.0) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(fluid = fluid, inputTemperature = inputTemperature), variables=[True,True, False])
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(fluid = fluid, inputTemperature = inputTemperature), variables=[True,True, True, False])
         if (type(flowRates) is not list and not(isinstance(flowRates,np.ndarray))) or (type(overPressures) is not list and not(isinstance(overPressures,np.ndarray))):
             raise TypeError('flowRates and overPressures must be a list of functionnement points')
         downstreamPole.temperature = inputTemperature
