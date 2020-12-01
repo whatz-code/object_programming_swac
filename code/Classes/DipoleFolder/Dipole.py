@@ -284,7 +284,7 @@ class Dipole(Edge):
     @downstreamPole.setter 
     def downstreamPole(self,downstreamPole): 
         typeErrorAtEntering(downstreamPole,Types = [], Classes = [Pole], message = "the downstreamPole must be an instance of the class Pole")
-        self.nodes[0] = downstreamPole
+        self.nodes = [downstreamPole, self.upstreamPole]
     
     @property 
     def upstreamPole(self): 
@@ -294,7 +294,7 @@ class Dipole(Edge):
     @upstreamPole.setter 
     def upstreamPole(self,upstreamPole): 
         typeErrorAtEntering(upstreamPole,Types = [], Classes = [Pole], message = "the upstreamPole must be an instance of the class Pole")
-        self.nodes[1] = upstreamPole
+        self.nodes = [self.downstreamPole, upstreamPole]
 
     @property 
     def variables(self): 
@@ -801,7 +801,7 @@ class PlateHeatExchangerSide(Dipole):
                 This parameter indicates the private attribute angle of the object created from 
                 the class PlateHeatExchangerSide. 
                 It represents the angle of the relief on the surface of the plates.
-                unity:m
+                unity:°
 
             length(type:float, Nonetype or :obj:np.float64): 
                 This parameter indicates the private attribute length of the object created from 
@@ -892,6 +892,22 @@ class PlateHeatExchangerSide(Dipole):
         # indeed, the thermic caracteristic depends on the other part of the heat exchanger. So exchanger = True.
         Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole,
                         upstreamPole, flow, variables, caracteristics = [True, False], exchanger=True)
+
+        typeErrorAtEntering( width, message = "the width must be a float number")
+        if length < 0 :
+            raise   ValueError("the width must be a positive float")
+
+        typeErrorAtEntering( plateGap, message = "the plate gap must be a float number")
+        if plateGap < 0 :
+            raise   ValueError("the plate gap must be a positive float")
+
+        typeErrorAtEntering( streakWaveLength, message = "the streak wave length must be a float number")
+        if streakWaveLength < 0 :
+            raise   ValueError("the streak wave length must be a positive float")
+
+        typeErrorAtEntering( plateNumber, Types = [int], Classes = [np.int64], message = "the plateNumber must be a integer number")
+        if plateNumber < 1:
+            raise ValueError("the number of plates must be a positive integer superior to 1")
         
         typeErrorAtEntering( angle, message = "the angle must be a float number")
         if angle <0 or angle >90:
@@ -905,10 +921,6 @@ class PlateHeatExchangerSide(Dipole):
         if Npasse < 1:
             raise ValueError("the number of passe must be a positive integer superior to 1")
 
-        typeErrorAtEntering( plateNumber, Types = [int], Classes = [np.int64], message = "the plateNumber must be a integer number")
-        if Npasse < 1:
-            raise ValueError("the number of passe must be a positive integer superior to 1")
-
         typeErrorAtEntering( hydraulicCorrectingFactor, message = "the hydraulicCorrectingFactor must be a float number")
         if hydraulicCorrectingFactor <= 0 :
             raise TypeError("the hydraulic correcting factor must be a strictly positive float close to 1")
@@ -916,73 +928,181 @@ class PlateHeatExchangerSide(Dipole):
         typeErrorAtEntering( thermicCorrectingFactor, message = "the thermicCorrectingFactor must be a float number")
         if thermicCorrectingFactor <= 0 :
             raise TypeError("the thermic correcting factor must be a strictly positive float close to 1")
-
-
+        
+        self.__width = width
+        self.__plateGap = plateGap
+        self.__streakWaveLength = streakWaveLength
+        self.__plateNumber = plateNumber
         self.__angle = angle
         self.__length = length
         self.__Npasse = Npasse
         self.__hydraulicCorrectingFactor = hydraulicCorrectingFactor
         self.__thermicCorrectingFactor = thermicCorrectingFactor
-    
-    @property      
-    def downstreamPole(self): 
-        return self.__downstreamPole
 
-    @downstreamPole.setter 
-    def downstreamPole(self,downstreamPole): 
-        self.__init__(self.name,self.hydraulicDiameter,self.crossSectionalArea,self.angle,self.length,self.Npasse,self.hydraulicCorrectingFactor,self.thermicCorrectingFactor, downstreamPole, self.upstreamPole, self.flow)
+
+    @property 
+    def width(self): 
+        """ get and set allows the user to modify the private width attribute """
+        return self.__width
+
+    @width.setter 
+    def width(self,width): 
+        typeErrorAtEntering(width, message = "the width must be a float number")
+        if type(width) is not type(None):
+            if width < 0:
+                raise ValueError('width must be positive')
+        self.__width = width
+
+    @property 
+    def plateGap(self): 
+        """ get and set allows the user to modify the private plateGap attribute """
+        return self.__plateGap
+
+    @plateGap.setter 
+    def plateGap(self,plateGap): 
+        typeErrorAtEntering(plateGap, message = "the plateGap must be a float number")
+        if type(plateGap) is not type(None):
+            if plateGap < 0:
+                raise ValueError('plateGap must be positive')
+        self.__plateGap = plateGap
     
     @property 
-    def upstreamPole(self): 
-        return self.__upstreamPole
+    def streakWaveLength(self): 
+        """ get and set allows the user to modify the private streakWaveLength attribute """
+        return self.__streakWaveLength
 
-    @upstreamPole.setter 
-    def upstreamPole(self,upstreamPole): 
-        self.__init__(self.name,self.hydraulicDiameter,self.crossSectionalArea,self.angle,self.length,self.Npasse,self.hydraulicCorrectingFactor,self.thermicCorrectingFactor, self.downstreamPole, upstreamPole, self.flow)
+    @streakWaveLength.setter 
+    def streakWaveLength(self,streakWaveLength): 
+        typeErrorAtEntering(streakWaveLength, message = "the streakWaveLength must be a float number")
+        if type(streakWaveLength) is not type(None):
+            if streakWaveLength < 0:
+                raise ValueError('streakWaveLength must be positive')
+        self.__streakWaveLength = streakWaveLength
+    
+    @property 
+    def plateNumber(self): 
+        """ get and set allows the user to modify the private plateNumber attribute """
+        return self.__plateNumber
+
+    @plateNumber.setter 
+    def plateNumber(self,plateNumber): 
+        typeErrorAtEntering( plateNumber, Types = [int], Classes = [np.int64], message = "the plateNumber must be a integer number")
+        if plateNumber < 1:
+            raise ValueError("the number of plates must be a positive integer superior to 1")
+        self.__plateNumber = plateNumber
 
     @property 
     def angle(self): 
+        """ get and set allows the user to modify the private angle attribute """
         return self.__angle
 
     @angle.setter 
     def angle(self,angle): 
-        self.__init__(self.name,self.hydraulicDiameter,self.crossSectionalArea,angle,self.length,self.Npasse,self.hydraulicCorrectingFactor,self.thermicCorrectingFactor, self.downstreamPole, self.upstreamPole, self.flow)
+        typeErrorAtEntering(angle, message = "the angle must be a float number")
+        if angle <0 or angle >90:
+            raise ValueError("the angle must be 0 and 90 degree")
+        self.__angle = angle
 
     @property 
     def length(self): 
+        """ get and set allows the user to modify the private length attribute """
         return self.__length
 
     @length.setter 
     def length(self,length): 
-        self.__init__(self.name,self.hydraulicDiameter,self.crossSectionalArea,self.angle, length,self.Npasse,self.hydraulicCorrectingFactor,self.thermicCorrectingFactor, self.downstreamPole, self.upstreamPole, self.flow)
+        typeErrorAtEntering(length, message = "the length must be a float number")
+        if type(length) is not type(None):
+            if length < 0:
+                raise ValueError('length must be positive')
+        self.__length = length
     
     @property 
     def Npasse(self): 
+        """ get and set allows the user to modify the private Npasse attribute """
         return self.__Npasse
 
     @Npasse.setter 
     def Npasse(self,Npasse): 
-        self.__init__(self.name,self.hydraulicDiameter,self.crossSectionalArea,self.angle,self.length,Npasse,self.hydraulicCorrectingFactor,self.thermicCorrectingFactor, self.downstreamPole, self.upstreamPole, self.flow)
-
-
-    @property 
-    def thermicCorrectingFactor(self): 
-        return self.__thermicCorrectingFactor
-
-    @thermicCorrectingFactor.setter 
-    def thermicCorrectingFactor(self,thermicCorrectingFactor): 
-        self.__init__(self.name,self.hydraulicDiameter,self.crossSectionalArea,self.angle,self.length,self.Npasse,self.hydraulicCorrectingFactor,thermicCorrectingFactor, self.downstreamPole, self.upstreamPole, self.flow)
+        typeErrorAtEntering( Npasse, Types = [int], Classes = [np.int64], message = "the Npasse must be a integer number")
+        if Npasse < 1:
+            raise ValueError("the number of plates must be a positive integer superior to 1")
+        self.__Npasse = Npasse
 
     @property 
     def hydraulicCorrectingFactor(self): 
+        """ get and set allows the user to modify the private hydraulicCorrectingFactor attribute """
         return self.__hydraulicCorrectingFactor
 
     @hydraulicCorrectingFactor.setter 
     def hydraulicCorrectingFactor(self,hydraulicCorrectingFactor): 
-        self.__init__(self.name,self.hydraulicDiameter,self.crossSectionalArea,self.angle,self.length,self.Npasse,hydraulicCorrectingFactor,self.thermicCorrectingFactor, self.downstreamPole, self.upstreamPole, self.flow)
+        typeErrorAtEntering(hydraulicCorrectingFactor, message = "the hydraulicCorrectingFactor must be a float number")
+        if type(hydraulicCorrectingFactor) is not type(None):
+            if hydraulicCorrectingFactor < 0:
+                raise ValueError('hydraulicCorrectingFactor must be positive')
+        self.__hydraulicCorrectingFactor = hydraulicCorrectingFactor
 
+    @property 
+    def thermicCorrectingFactor(self): 
+        """ get and set allows the user to modify the private thermicCorrectingFactor attribute """
+        return self.__thermicCorrectingFactor
+
+    @thermicCorrectingFactor.setter 
+    def thermicCorrectingFactor(self,thermicCorrectingFactor): 
+        typeErrorAtEntering(thermicCorrectingFactor, message = "the thermicCorrectingFactor must be a float number")
+        if type(thermicCorrectingFactor) is not type(None):
+            if thermicCorrectingFactor < 0:
+                raise ValueError('thermicCorrectingFactor must be positive')
+        self.__thermicCorrectingFactor = thermicCorrectingFactor
     
-    def hydraulicCorrelation(self, reynoldsNumber, length = None, angle = None, Npasse = None, hydraulicDiameter = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09, hydraulicCorrectingFactor = 1.0): #correspond à la hydraulicCorrelation de Martin
+    #it's the Martin correlation
+    def hydraulicCorrelation(self, reynoldsNumber, length = None, angle = None, Npasse = None, 
+                            hydraulicDiameter = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09, 
+                            hydraulicCorrectingFactor = 1.0): 
+        """ the method hydraulicCorrelation 
+
+        Note: 
+            When this method is defined, it take into account the caracteristics
+            of the object created from the class Dipole and the reynolds number of 
+            the flow to give head loss coefficient of the formula :
+            Delta P = headLossCoefficient * volumetricMass * 1/2 * v ** 2
+            with  :
+                - Delta P the pressure head loss
+                - headLossCoefficient the head loss coefficient
+                - volumetricMass the volumetric Mass
+                - v the average velocity of the flow
+        Args:
+            reynoldsNumber(type:float):
+                It corresponds to the Reynolds number which combines the
+                importants information of the flow and the dipole.
+            hydraulicDiameter(type:float or None type):
+                If the hydraulicDiameter is equal to None, then the hydraulicDiameter
+                taken into account is taken from the dipole object.
+                unity: m
+            Npasse(type:int or None type):
+                If the Npasse is equal to None, then the Npasse
+                taken into account is taken from the dipole object.
+            parameterA(type:float or None type):
+            parameterB(type:float or None type):
+            parameterc(type:float or None type):
+                these 3 parameters are the parameters in the correlation
+                of Martin, it have default values, it is the value taken
+                from the handbook : fundamentals of heat exchanger design
+                but others value could be more accurate.
+            hydraulicCorrectingFactor(type:float or None type):
+                If the hydraylicCorrectingFactor is equal to None, then 
+                the hydraylicCorrectingFactor taken into account is taken 
+                from the dipole object.
+                unity: m
+
+        Returns:
+            headLossCoefficient(type:float)
+                        
+        Raises: 
+            TypeError : If reynoldsNumber is not a float
+
+
+        """
+        #intern parameters are taken if not defined
         if length == None:
             length = self.length
         if angle == None:
@@ -992,30 +1112,32 @@ class PlateHeatExchangerSide(Dipole):
         if hydraulicDiameter == None:
             hydraulicDiameter = self.hydraulicDiameter
 
-        if type(angle) is not float:
-            raise TypeError("the pattern angle must be a float number")
+        #exceptions are created :
+        typeErrorAtEntering(angle, message = "the angle must be a float number")
         if angle <0 or angle >90:
             raise ValueError("the angle must be 0 and 90 degree")
-        if type(length) is not float:
-            raise TypeError("the length must be a positive float")
+
+        typeErrorAtEntering(length, message = "the length must be a float number")
         if length < 0 :
             raise   ValueError("the length must be a positive float")
-        if type(Npasse) is not int:
-            raise TypeError("the number of passe must be a positive integer superior to 1")
+
+        typeErrorAtEntering( Npasse, Types = [int], Classes = [np.int64], message = "the Npasse must be a integer number")
         if Npasse < 1:
             raise ValueError("the number of passe must be a positive integer superior to 1")
-        if type(hydraulicCorrectingFactor) is not float:
-            raise TypeError("the hydraulic correcting factor must be a strictly positive float close to 1")
+
+        typeErrorAtEntering(hydraulicCorrectingFactor, message = "the hydraulicCorrectingFactor must be a float number")
         if hydraulicCorrectingFactor <= 0 :
             raise TypeError("the hydraulic correcting factor must be a strictly positive float close to 1")
-        if type(reynoldsNumber) is not float:
-            raise TypeError("the reynolds number must be a strictly positive float")
+
+        typeErrorAtEntering(reynoldsNumber, message = "the reynoldsNumber must be a float number")
         if reynoldsNumber <=0 :
             raise ValueError("the reynolds number must be a strictly positive float")
-
+        
+        #conversion of the angle in radiant
         angle = angle * pi / 180
         
         def laminar(reynoldsNumber, angle):
+            """ returns the regular head loss coefficient for a laminar flow """
             if reynoldsNumber > 0 :
                 f0 = 16 / reynoldsNumber
                 f1 = 149.25 / reynoldsNumber + 0.9625
@@ -1025,14 +1147,19 @@ class PlateHeatExchangerSide(Dipole):
                 raise ValueError('reynoldsNumber should be superior to 0')
 
         def turbulent(reynoldsNumber, angle):
+            """ returns the regular head loss coefficient for a turbulent flow """
             f0 = (1.56 * log(reynoldsNumber) - 3) ** (-2)
             f1 = 9.75 / reynoldsNumber ** 0.289
             etape = etapeCalcul(angle, f0, f1)
             return 1 / etape ** 2
 
+        #just a step to calcul
         def etapeCalcul(angle, f0, f1):
             return cos(angle) / (parameterB * tan(angle) + parameterC * sin(angle) + f0 / cos(angle)) ** (1/2) + (1 - cos(angle)) / (parameterA * f1) ** (1/2)
 
+        #it's considered that the flow is laminar if the reynolds number is higher than 2000 and
+        #turbulent if the reynolds number is higher than 4000, between the 2 limits it's the 
+        #average balanced by the distance of the limits 
         if reynoldsNumber < 2000 :
             return laminar(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse
         if reynoldsNumber >= 2000 and reynoldsNumber <=4000 :
@@ -1042,6 +1169,39 @@ class PlateHeatExchangerSide(Dipole):
             return turbulent(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse
 
     def hydraulicCaracteristic(self, flowRate = None, fluid = None, flowRateUnity = "m3/s", pressureUnity = "Pa", hydraulicCorrectingFactor = None):
+        """ the method hydraulicCaracteristic 
+
+        Note: 
+            When this method is defined, it take into account the hydraulicCaracteristics
+            of the object created from the class Dipole and the flow rate and the 
+            fluid to compute the difference of pressure between the outlet and the
+            inlet of the dipole. 
+            This hydraulicCaracteristic can be deduced from the hydraulic correlation, if it's
+            defined.
+        Args:
+            flowRate(type:float or None type):
+                If the flowRate is equal to None, the flowRate use for the calcul
+                is the flowRate from the flow object attribute.
+                unity: defined by flowRateUnity
+            fluid(:obj: Fluid, type:None type):
+                If the fluid is equal to None, the fluid taken into account
+                is the fluid from the flow object attribute.
+            flowRateUnity(type:str):
+                flowRateUnity can be equal to "m3/s" or "m3/h"
+                pressureUnity can be equal to "Pa", "bar", "mCE"
+
+        Returns:
+            pressureDifference(type:float)
+                unity:defined by pressureUnity
+            None when the method is not defined
+                        
+        Raises: 
+            TypeError : If flowRate is not a float 
+            TypeError : If fluid is not a Fluid object
+
+
+        """
+         #takes the intern variables if undefined
         if hydraulicCorrectingFactor == None :
             hydraulicCorrectingFactor = self.hydraulicCorrectingFactor
         if flowRate == None:
@@ -1049,14 +1209,58 @@ class PlateHeatExchangerSide(Dipole):
         if fluid == None:
             fluid = self.flow.fluid
 
-        if type(flowRate) is not float:
-            raise TypeError('the flow rate must be a float number')
-        if not(isinstance(fluid,Fluid)):
-            raise TypeError('fluid must be a Fluid')
+        typeErrorAtEntering( flowRate, message = "the flow rate must be a float number")
+        typeErrorAtEntering( flowRate, Types = [], Classes = [Fluid], message = "the fluid must be a fluid object")
 
         return - HydraulicThermicCalculus.caracteristic(self, flowRate, fluid, flowRateUnity, pressureUnity) * hydraulicCorrectingFactor
 
-    def thermicCorrelation(self, reynoldsNumber, prandtlNumber = None, length = None, angle = None, Npasse = None, hydraulicDiameter = None, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09, thermicCorrectingFactor = 1.0):
+    def thermicCorrelation(self, reynoldsNumber, prandtlNumber = None, length = None, 
+                            angle = None, Npasse = None, hydraulicDiameter = None, parameterA = 3.8, 
+                            parameterB = 0.045, parameterC = 0.09, thermicCorrectingFactor = 1.0):
+        """ the method thermicCorrelation 
+
+        Note: 
+            It take into account the caracteristics
+            of the object created from the class Dipole, the reynolds number and
+            the prandtl number to give the Nusselt number
+
+        Args:
+            reynoldsNumber(type:float):
+                It corresponds to the Reynolds number which combines the
+                importants information of the flow and the dipole.
+            prandtlNumber(type:float):
+                It corresponds to the prandtl number which is the ratio 
+                between the momentum diffusivity and the thermal diffusivity :
+                prantlNumber = thermicCapacity * dynamicViscosity / thermicConductivity
+            hydraulicDiameter(type:float or None type):
+                If the hydraulicDiameter is equal to None, then the hydraulicDiameter
+                taken into account is taken from the dipole object.
+                unity: m
+            Npasse(type:int or None type):
+                If the Npasse is equal to None, then the Npasse
+                taken into account is taken from the dipole object.
+            parameterA(type:float or None type):
+            parameterB(type:float or None type):
+            parameterc(type:float or None type):
+                these 3 parameters are the parameters in the correlation
+                of Martin, it have default values, it is the value taken
+                from the handbook : fundamentals of heat exchanger design
+                but others value could be more accurate.
+            thermicCorrectingFactor(type:float or None type):
+                If the thermicCorrectingFactor is equal to None, then 
+                the thermicCorrectingFactor taken into account is taken 
+                from the dipole object.
+                unity: m
+
+        Returns:
+            NusseltNumber(type:float)
+                        
+        Raises: 
+            TypeError : If the variables have not the types specified
+
+
+        """
+        #taking of the intern variables if not defined
         if angle == None:
             angle = self.angle 
         if length == None:
@@ -1072,29 +1276,28 @@ class PlateHeatExchangerSide(Dipole):
         if prandtlNumber == None:
             prandtlNumber = self.flow.fluid.thermicCapacity * self.flow.fluid.dynamicViscosity / self.flow.fluid.thermicConductivity
 
-        if type(angle) is not float:
-            raise TypeError("the pattern angle must be a float number")
+        #raise of exceptions
+
+        typeErrorAtEntering(angle, message = "the angle must be a float number")
         if angle <0 or angle >90:
             raise ValueError("the angle must be 0 and 90 degree")
-        if type(length) is not float:
-            raise TypeError("the length must be a positive float")
+
+        typeErrorAtEntering(length, message = "the length must be a float number")
         if length < 0 :
             raise   ValueError("the length must be a positive float")
-        if type(Npasse) is not int:
-            raise TypeError("the number of passe must be a positive integer superior to 1")
+
+        typeErrorAtEntering( Npasse, Types = [int], Classes = [np.int64], message = "the Npasse must be a integer number")
         if Npasse < 1:
             raise ValueError("the number of passe must be a positive integer superior to 1")
-        if type(thermicCorrectingFactor) is not float:
-            raise TypeError("the thermic correcting factor must be a strictly positive float close to 1")
+
+        typeErrorAtEntering(thermicCorrectingFactor, message = "the thermicCorrectingFactor must be a float number")
         if thermicCorrectingFactor <= 0 :
-            raise TypeError("the thermic correcting factor must be a strictly positive float close to 1")
-        if type(reynoldsNumber) is not float or type(prandtlNumber) is not float:
-            raise TypeError("the reynolds number and the prandtl number must be a strictly positive float")
-        if reynoldsNumber <=0 or prandtlNumber <= 0:
-            raise ValueError("the reynolds number and the prandtl number must be a strictly positive float")
+            raise TypeError("the hydraulic correcting factor must be a strictly positive float close to 1")
 
-
-
+        typeErrorAtEntering(reynoldsNumber, message = "the reynoldsNumber must be a float number")
+        if reynoldsNumber <=0 :
+            raise ValueError("the reynolds number must be a strictly positive float")
+   
         headLossCoefficient = self.hydraulicCorrelation(reynoldsNumber, parameterA = 3.8, parameterB = 0.045, parameterC = 0.09) / Npasse / length * hydraulicDiameter
         angle *= pi / 180
         nusseltNumber = 0.122 * prandtlNumber ** (1/3) * (headLossCoefficient * reynoldsNumber ** 2 * sin(2 * angle) ) ** 0.374

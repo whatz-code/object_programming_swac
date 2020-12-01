@@ -191,7 +191,7 @@ class HydraulicCircuit(Graph):
             self.dipoles[XToDipolesUnknownPressureOnly[key]].flow.pressureDifference = solution[key]
         for key in XToDipolesUnknownPressureAndUnknownFlowRate:
             self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].flow.flowRate = solution[key]
-            self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].flow.pressureDifference = self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].caracteristic()
+            self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].flow.pressureDifference = self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].hydraulicCaracteristic()
 
         
 
@@ -267,8 +267,8 @@ class HydraulicCircuit(Graph):
                 variablePressureDipole.append(i)
             if testingVariables[i][0] and testingVariables[i][1]: #s'il n'y a ni le débit ni la différence de pression qui est fixée il doit obligatoirement y avoir la caracteristique du circuit qui est définie
                 dipoleWithCaracteristic.append(i)
-                if dipole.caracteristic(1.0) == None: #on appelle la fonction il ne faut pas qu'elle retourne None
-                    raise ValueError("the hydraulic caracteristic of the dipole " +str(dipole.name)+ "needs to be defined to calcul the hydraulic fonctionnement of the circuit" )
+                if dipole.hydraulicCaracteristic(1.0) == None: #on appelle la fonction il ne faut pas qu'elle retourne None
+                    raise ValueError("the hydraulic hydraulicCaracteristic of the dipole " +str(dipole.name)+ "needs to be defined to calcul the hydraulic fonctionnement of the circuit" )
         pressureIsUnknown = [] #on fait une liste d'ids dans laquelle la pression sera l'inconnue : tel que la pression est variable et n'admet pas de caractéristique
         for id in variablePressureDipole:
             if id not in dipoleWithCaracteristic:
@@ -314,14 +314,14 @@ class HydraulicCircuit(Graph):
             F = [] #La liste des fonctions caracteristiques des dipoles qui en admettent (F(Q) = DeltaP)
             for id in dipoleWithCaracteristic:
                 def f():
-                    def caracteristic(q, fluid):
-                        return self.dipoles[id].caracteristic(q , fluid)
-                    caracteristic = self.dipoles[id].caracteristic
+                    def hydraulicCaracteristic(q, fluid):
+                        return self.dipoles[id].hydraulicCaracteristic(q , fluid)
+                    hydraulicCaracteristic = self.dipoles[id].hydraulicCaracteristic
                     fluid = self.dipoles[id].flow.fluid
                     def g(q):
                         if q == None:
                             raise ValueError("the flow rate of the dipole " + string(self.dipoles[id].name) + " must be given")
-                        return caracteristic(q, fluid)
+                        return hydraulicCaracteristic(q, fluid)
                     return g
                 f = f()
                 F.append(f)
