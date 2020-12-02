@@ -16,7 +16,7 @@ class TestPipe(unittest.TestCase):
         self.pipe = Pipe('pipe',0.1,0.1,0.1,self.downstreamPole,self.upstreamPole,self.flow)
     def test_init(self):
         with self.assertRaises(TypeError):
-            self.initTest = Pipe(hydraulicDiameter=1)
+            self.initTest = Pipe(pipeDiameter=1)
             self.initTest = Pipe(rugosity=1)
             self.initTest = Pipe(length=1)
             self.initTest = Pipe(downstreamPole=1)
@@ -24,7 +24,7 @@ class TestPipe(unittest.TestCase):
     def test_getter(self):
         self.assertEqual(self.pipe.name,'pipe')
         self.assertEqual(self.pipe.length,0.1)
-        self.assertEqual(self.pipe.hydraulicDiameter,0.1)
+        self.assertEqual(self.pipe.pipeDiameter,0.1)
         self.assertEqual(self.pipe.crossSectionalArea,pi * 0.1 ** 2 / 4)
         self.assertEqual(self.pipe.rugosity,0.1)
         self.assertEqual(self.pipe.downstreamPole,self.downstreamPole)
@@ -33,7 +33,7 @@ class TestPipe(unittest.TestCase):
 
     def test_setter(self):
         self.pipe.name = 1
-        self.pipe.hydraulicDiameter = 0.1
+        self.pipe.pipeDiameter = 0.1
         self.pipe.crossSectionalArea = 0.1
         self.pipe.downstreamPole = self.upstreamPole
         self.pipe.upstreamPole = self.downstreamPole
@@ -41,7 +41,7 @@ class TestPipe(unittest.TestCase):
         self.pipe.flow = self.flow
         self.pipe.length = 0.1
         with self.assertRaises(TypeError):
-            self.pipe.hydraulicDiameter = 1
+            self.pipe.pipeDiameter = 1
             self.pipe.rugosity = 1
             self.pipe.length = 2
             self.pipe.crossSectionalArea = 1
@@ -58,7 +58,7 @@ class TestPipe(unittest.TestCase):
     def test_caracteristic(self):
         self.pipe = Pipe(rugosity = 0.0001,length=500.0,downstreamPole=self.downstreamPole,upstreamPole=self.upstreamPole)
         self.pipe.flow.flowRate = 830.0 / 3600
-        print(self.pipe.caracteristic() / 10 ** 5 * 9.8)
+        print(self.pipe.hydraulicCaracteristic() / 10 ** 5 * 9.8)
 
 
 

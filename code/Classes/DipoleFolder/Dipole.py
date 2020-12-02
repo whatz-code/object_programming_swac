@@ -1,4 +1,4 @@
-""" Into the module dipole are created the classes : 
+""" Into the module dipole are initialised the classes : 
         - Pole
         - Dipole
         - Pipe
@@ -39,17 +39,17 @@ class Pole(Node):
 
         Args:
             pressure (type:float,Nonetype or :obj:np.float64): This parameter indicates the private attribute pressure of the 
-                                    object created from the classe Pole. It represents the pressures between dipoles which are
+                                    object initialised from the classe Pole. It represents the pressures between dipoles which are
                                     associated with the pole object as an attribute.
                                     unity : Pascal.
             temperature (type:float,Nonetype or :obj:np.float64): This parameter indicates the private attribute temperature
-                                    of the object created from the classe Pole. It represents the pressures between dipoles which are
+                                    of the object initialised from the classe Pole. It represents the pressures between dipoles which are
                                     associated with the pole object as an attribute.
                                     unity : °C
             successors (type:list of :obj:Pole): This parameter indicates the private attribute successors of the 
-                                    object created from the parent class Node. It represents the other poles linked
+                                    object initialised from the parent class Node. It represents the other poles linked
                                     by a dipole where the pole object is the downstream attribute.
-            fluid(:obj: Fluid): This parameter indicates the private attribute fluid of the obkect created from the class Flow. It represents
+            fluid(:obj: Fluid): This parameter indicates the private attribute fluid of the obkect initialised from the class Flow. It represents
                                 the fluid which flows between the dipoles the pole object is associated with as an attribtute.
                                     
                         
@@ -66,7 +66,7 @@ class Pole(Node):
         typeErrorAtEntering(temperature,Types = [float, type(None)], message = "the temperature must be a float or a None type")
         self.__temperature = temperature
 
-        typeErrorAtEntering(flowRate,Types = [], Classes = [Fluid], message = "the fluid must be a Fluid object")
+        typeErrorAtEntering(fluid,Types = [], Classes = [Fluid], message = "the fluid must be a Fluid object")
         self.__fluid = fluid
 
     @property 
@@ -125,40 +125,40 @@ class Dipole(Edge):
 
             hydraulicDiameter (type:float,Nonetype or :obj:np.float64): 
                 This parameter indicates the private attribute hydraulicDiameter of the 
-                dipole object created from the class Dipole. 
+                dipole object initialised from the class Dipole. 
                 It represents the caracteristical length in the dipole to computes the 
                 reynolds or other important numbers.
                 unity : m
 
             crossSectionnalArea (type:float,Nonetype or :obj:np.float64): 
                 This parameter indicates the private attribute crossSectionalArea of the object 
-                created from the Dipole class. 
+                initialised from the Dipole class. 
                 It represents the sectionnal area of the flow, it's an important parameter to compute 
                 the average velocity of the fluid into the dipole.
                 unity : m²
 
             downstreamPole (:obj:Pole): 
                 This parameter indicates the private attribute Poles[0] of the 
-                object created from the Edge class (the parent class of Dipole). 
+                object initialised from the Edge class (the parent class of Dipole). 
                 It represents the pole where the fluid enters into the dipole (or the
                 dipole entry). By default all the states attributes of the object downstreamPole 
                 are undefined (with the None variable).
 
             upstreamPole (:obj:Pole): 
                 This parameter indicates the private attribute Poles[1] of the 
-                object created from the Edge class (the parent class of Dipole). 
+                object initialised from the Edge class (the parent class of Dipole). 
                 It represents the pole where the fluid exits the dipole (or the
                 dipole outlet). By default all the states attributes of the object 
                 upstreamPole are undefined (with the None variable).
 
             flow(:obj: Flow): 
-                This parameter indicates the private attribute flow of the object created from 
+                This parameter indicates the private attribute flow of the object initialised from 
                 the class Dipole. 
                 It represents the state of the flow of the dipole. By default all the states
                 attributes of the object flow are undefined (with the None variable).
 
             variables(type:list of 4 booleans):
-                This parameter indicates the private attribute variables of the object created from 
+                This parameter indicates the private attribute variables of the object initialised from 
                 the class Dipole.    
                 It gives the knowledge of how the variables of the flow can be calculated : 
                     - if variables[0] == False : the flow rate is fixed (so flowRate is a variable of the system)
@@ -170,14 +170,14 @@ class Dipole(Edge):
                 resolved to know the functionnement hydraulic and thermic of the networks
 
             caracteristics(type:list of 2 booleans):
-                This parameter indicate the private attribut caracteristics of the object created from
+                This parameter indicate the private attribut caracteristics of the object initialised from
                 the class Dipole.
                 It gives the knowledge of what caracteristics are defined :
                     - if caracteristics[0] = False : the method hydraulicCaracteristic is not defined (True : is defined)
                     - if caracteristics[1] = False : the method hydraulicCaracteristic is not defined (True : is defined)
             
             exchanger(type:boolean):
-                this paramete indicate the private attribute exchanger of the object created from the class
+                this paramete indicate the private attribute exchanger of the object initialised from the class
                 exchanger.
                 It gives the knowledge : 
                     - if the dipole is a part of an exchanger : True, else : False
@@ -200,27 +200,27 @@ class Dipole(Edge):
         typeErrorAtEntering(flow,Types = [], Classes = [Flow], message = "the flow must be an instance of the class Flow")
         self.__flow = flow
 
-        typeErrorAtEntering(hydraulicDiameter, message = "the hydraulic diameter must be a float number")
-        if type(hydraulicDiameter) is not type(None):
+        typeErrorAtEntering(hydraulicDiameter, Types = [float, type(None)], message = "the hydraulic diameter must be a float number")
+        if hydraulicDiameter !=None:
             if hydraulicDiameter <= 0:
                 raise ValueError('hydraulic diameter must be strictly positive')
         self.__hydraulicDiameter = hydraulicDiameter
 
-        typeErrorAtEntering(crossSectionalArea, message = "the cross sectionnal area must be a float number")
-        if type(crossSectionalArea) is not type(None):
+        typeErrorAtEntering(crossSectionalArea, Types = [float, type(None)], message = "the cross sectionnal area must be a float number")
+        if crossSectionalArea != None:
             if crossSectionalArea <= 0:
                 raise ValueError('cross sectionnal area must be strictly positive')
         self.__crossSectionalArea = crossSectionalArea
 
-        typeErrorAtEntering(variables, Types = list, message = "the variables must be a list of 4 booleans")
-        if len(variables) != 5:
-            raise TypeError("the variables must be a list of 5 booleans")
+        typeErrorAtEntering(variables, Types = [list], message = "the variables must be a list of 4 booleans")
+        if len(variables) != 4:
+            raise TypeError("the variables must be a list of 4 booleans")
         for variable in variables :
             if type(variable) is not bool: 
-                raise TypeError("the variables must be a list of 5 booleans")
+                raise TypeError("the variables must be a list of 4 booleans")
         self.__variables = variables
 
-        typeErrorAtEntering(caracteristics, Types = list, message = "the caracteristics must be a list of 2 booleans")
+        typeErrorAtEntering(caracteristics, Types = [list], message = "the caracteristics must be a list of 2 booleans")
         if len(caracteristics) != 2:
             raise TypeError("the caracteristics must be a list of 2 booleans")
         for variable in caracteristics :
@@ -228,8 +228,8 @@ class Dipole(Edge):
                 raise TypeError("the caracteristics must be a list of 2 booleans")
         self.__caracteristics = caracteristics
 
-        typeErrorAtEntering(exchanger, Types = bool, message = "the variables must be a boolean")
-        self.__echanger = echanger
+        typeErrorAtEntering(exchanger, Types = [bool], message = "the variables must be a boolean")
+        self.__exchanger = exchanger
 
     @property 
     def name(self): 
@@ -247,8 +247,8 @@ class Dipole(Edge):
 
     @hydraulicDiameter.setter 
     def hydraulicDiameter(self,hydraulicDiameter):
-        typeErrorAtEntering(hydraulicDiameter, message = "the hydraulic diameter must be a float number")
-        if type(hydraulicDiameter) is not type(None):
+        typeErrorAtEntering(hydraulicDiameter, Types = [float, type(None)], message = "the hydraulic diameter must be a float number")
+        if hydraulicDiameter !=None:
             if hydraulicDiameter <= 0:
                 raise ValueError('hydraulic diameter must be strictly positive')
         self.__hydraulicDiameter = hydraulicDiameter
@@ -260,8 +260,8 @@ class Dipole(Edge):
 
     @crossSectionalArea.setter 
     def crossSectionalArea(self,crossSectionalArea): 
-        typeErrorAtEntering(crossSectionalArea, message = "the cross sectionnal area must be a float number")
-        if type(crossSectionalArea) is not type(None):
+        typeErrorAtEntering(crossSectionalArea, Types = [float, type(None)], message = "the cross sectionnal area must be a float number")
+        if crossSectionalArea != None:
             if crossSectionalArea <= 0:
                 raise ValueError('cross sectionnal area must be strictly positive')
         self.__crossSectionalArea = crossSectionalArea
@@ -303,13 +303,38 @@ class Dipole(Edge):
 
     @variables.setter 
     def variables(self,variables): 
-        typeErrorAtEntering(variables, Types = list, message = "the variables must be a list of 5 booleans")
-        if len(variables) != 5:
-            raise TypeError("the variables must be a list of 5 booleans")
+        typeErrorAtEntering(variables, Types = [list], message = "the variables must be a list of 5 booleans")
+        if len(variables) != 4:
+            raise TypeError("the variables must be a list of 4 booleans")
         for variable in variables :
             if type(variable) is not bool: 
-                raise TypeError("the variables must be a list of 5 booleans")
+                raise TypeError("the variables must be a list of 4 booleans")
         self.__variables = variables
+    
+    @property 
+    def caracteristics(self): 
+        """ get method and set method to access the private variable caracteristics """
+        return self.__caracteristics
+
+    @caracteristics.setter 
+    def caracteristics(self,caracteristics): 
+        typeErrorAtEntering(caracteristics, Types = [list], message = "the caracteristics must be a list of 5 booleans")
+        if len(caracteristics) != 2:
+            raise TypeError("the caracteristics must be a list of 2 booleans")
+        for caracteristic in caracteristics :
+            if type(caracteristic) is not bool: 
+                raise TypeError("the caracteristics must be a list of 2 booleans")
+        self.__caracteristics = caracteristics
+    
+    @property 
+    def exchanger(self): 
+        """ get method and set method to access the private variable exchanger """
+        return self.__exchanger
+
+    @exchanger.setter 
+    def exchanger(self,exchanger): 
+        typeErrorAtEntering(exchanger, Types = [bool], message = "the variables must be a boolean")
+        self.__echanger = echanger
     
 
     def hydraulicCorrelation(self, reynoldsNumber) :
@@ -317,7 +342,7 @@ class Dipole(Edge):
 
         Note: 
             When this method is defined, it take into account the caracteristics
-            of the object created from the class Dipole and the reynolds number of 
+            of the object initialised from the class Dipole and the reynolds number of 
             the flow to give head loss coefficient of the formula :
             Delta P = headLossCoefficient * volumetricMass * 1/2 * v ** 2
             with  :
@@ -347,7 +372,7 @@ class Dipole(Edge):
 
         Note: 
             When this method is defined, it take into account the hydraulicCaracteristics
-            of the object created from the class Dipole and the flow rate and the 
+            of the object initialised from the class Dipole and the flow rate and the 
             fluid to compute the difference of pressure between the outlet and the
             inlet of the dipole. 
             This hydraulicCaracteristic can be deduced from the hydraulic correlation, if it's
@@ -386,7 +411,7 @@ class Dipole(Edge):
 
         Note: 
             When this method is defined, it take into account the caracteristics
-            of the object created from the class Dipole, the reynolds number and
+            of the object initialised from the class Dipole, the reynolds number and
             the prandtl number to give the Nusselt number
 
         Args:
@@ -416,7 +441,7 @@ class Dipole(Edge):
 
         Note: 
             When this method is defined, it take into account the caracteristics
-            of the object created from the class Dipole, the flow rate and the 
+            of the object initialised from the class Dipole, the flow rate and the 
             fluid to compute the thermal power given to the fluid.
         Args:
             flowRate(type:float or None type):
@@ -444,14 +469,14 @@ class Dipole(Edge):
 
 class Pipe(Dipole):
     
-    def __init__(self,name = 'Pipe', hydraulicDiameter = 0.348, rugosity = 0.0001, length = 50.0,
+    def __init__(self,name = 'Pipe', pipeDiameter = 0.348, rugosity = 0.0001, length = 50.0,
                     downstreamPole = Pole('downstream pole'), upstreamPole = Pole('upstream Pole'), 
                     flow = Flow(), variables = [True, True, True, True], caracteristics = [True, True], 
                     exchanger = False) : 
         """Class Pipe __init__ method : 
         
         Note : 
-            The Pipe class is a child of the Dipole class. It represents pipes in a hydraulic network.
+            The Pipe class is a child of the Dipole class. It represents pipes in a pipe network.
             the __init__ method offers the opportunity to give the attributes of the Pipe object.
 
         Args:
@@ -459,46 +484,46 @@ class Pipe(Dipole):
                 this parameters indicates the private attribute name. This parameter gives 
                         the user the opportunity to organise his dipole objects.
 
-            hydraulicDiameter (type:float,Nonetype or :obj:np.float64): 
-                This parameter indicates the private attribute hydraulicDiameter of the 
-                dipole object created from the class Dipole. 
+            pipeDiameter (type:float,Nonetype or :obj:np.float64): 
+                This parameter indicates the private attribute pipeDiameter of the 
+                dipole object initialised from the class Dipole. 
                 It represents the caracteristical length in the dipole to computes the 
                 reynolds or other important numbers.
-                By default the hydraulicDiameter is fixed to 0.348 m because it's an hydraulic
+                By default the pipeDiameter is fixed to 0.348 m because it's an pipe
                 diameter that exists in reality.
                 unity : m
             
             rugosity(type:float): 
-                This parameter indicates the private attribute flow of the object created from 
+                This parameter indicates the private attribute flow of the object initialised from 
                 the class Pipe. 
                 It represents the surface roughness of the pipe.
                 By default it's fixed to 0.0001 m because it's a good order of magnitude
                 unity:m
             
             length(type:float): 
-                This parameter indicates the private attribute length of the object created from 
+                This parameter indicates the private attribute length of the object initialised from 
                 the class Pipe. 
                 It represents the length of the pipe.
                 By default it's 50 m but it should be any other length while it's far superior to
-                the hydraulicDiameter.
+                the pipeDiameter.
                 unity:m
 
             downstreamPole (:obj:Pole): 
                 This parameter indicates the private attribute Poles[0] of the 
-                object created from the Edge class (the parent class of Dipole). 
+                object initialised from the Edge class (the parent class of Dipole). 
                 It represents the pole where the fluid enters into the dipole (or the
                 dipole entry). By default all the states attributes of the object downstreamPole 
                 are undefined (with the None variable).
 
             upstreamPole (:obj:Pole): 
                 This parameter indicates the private attribute Poles[1] of the 
-                object created from the Edge class (the parent class of Dipole). 
+                object initialised from the Edge class (the parent class of Dipole). 
                 It represents the pole where the fluid exits the dipole (or the
                 dipole outlet). By default all the states attributes of the object 
                 upstreamPole are undefined (with the None variable).
 
             flow(:obj: Flow): 
-                This parameter indicates the private attribute flow of the object created from 
+                This parameter indicates the private attribute flow of the object initialised from 
                 the class Dipole. 
                 It represents the state of the flow of the dipole. By default all the states
                 attributes of the object flow are undefined (with the None variable).
@@ -533,10 +558,10 @@ class Pipe(Dipole):
                 It's raised by the function typeErrorAtEntering when the Types and the object
                 don't match with the type and the object defined.
             ValueError: 
-                If the variables haven't the physical reality, example : hydraulicDiameter < 0
+                If the variables haven't the physical reality, example : pipeDiameter < 0
 
         """
-        Dipole.__init__(self, name, hydraulicDiameter, hydraulicDiameter**2*pi/4,
+        Dipole.__init__(self, name, pipeDiameter, pipeDiameter**2*pi/4,
                         downstreamPole, upstreamPole, flow, variables = variables, 
                         caracteristics = caracteristics, exchanger = exchanger)
 
@@ -567,6 +592,20 @@ class Pipe(Dipole):
         self.__rugosity = rugosity
 
     @property 
+    def pipeDiameter(self): 
+        """ get and set allows the user to modify the private pipeDiameter attribute """ 
+        return self.hydraulicDiameter
+
+    @pipeDiameter.setter 
+    def pipeDiameter(self,pipeDiameter): 
+        typeErrorAtEntering(pipeDiameter, message = "the pipeDiameter must be a float number")
+        if type(pipeDiameter) is not type(None):
+            if pipeDiameter < 0:
+                raise ValueError('pipeDiameter must be positive')
+        self.__crossSectionalArea = pipeDiameter**2*pi/4
+        self.hydraulicDiameter = pipeDiameter
+
+    @property 
     def length(self): 
         """ get and set allows the user to modify the private length attribute """
         return self.__length
@@ -584,7 +623,7 @@ class Pipe(Dipole):
 
         Note: 
             When this method is defined, it take into account the caracteristics
-            of the object created from the class Dipole and the reynolds number of 
+            of the object initialised from the class Dipole and the reynolds number of 
             the flow to give head loss coefficient of the formula :
             Delta P = headLossCoefficient * volumetricMass * 1/2 * v ** 2
             with  :
@@ -680,7 +719,7 @@ class Pipe(Dipole):
 
         Note: 
             When this method is defined, it take into account the hydraulicCaracteristics
-            of the object created from the class Dipole and the flow rate and the 
+            of the object initialised from the class Dipole and the flow rate and the 
             fluid to compute the difference of pressure between the outlet and the
             inlet of the dipole. 
             This hydraulicCaracteristic can be deduced from the hydraulic correlation, if it's
@@ -724,7 +763,7 @@ class Pipe(Dipole):
 
         Note: 
             When this method is defined, it take into account the caracteristics
-            of the object created from the class Dipole, the flow rate and the 
+            of the object initialised from the class Dipole, the flow rate and the 
             fluid to compute the thermal power given to the fluid.
         Args:
             flowRate(type:float or None type):
@@ -777,69 +816,69 @@ class PlateHeatExchangerSide(Dipole):
 
             width (type:float,Nonetype or :obj:np.float64): 
                 This parameter indicates the private attribute width of the 
-                plateHeatExchangerSide object created from the class PlateHeatExchangerSide. 
+                plateHeatExchangerSide object initialised from the class PlateHeatExchangerSide. 
                 It represents the caracteristical width of the exchanger.
                 unity : m
             
             plateGap(type:float, Nonetype or :obj:np.float64): 
-                This parameter indicates the private attribute plateGape of the object created from 
+                This parameter indicates the private attribute plateGape of the object initialised from 
                 the class PlateHeatExchangerSide. 
                 unity:mm
             
             streakWaveLength(type:float, Nonetype or :obj:np.float64): 
-                This parameter indicates the private attribute streakWaveLength of the object created from 
+                This parameter indicates the private attribute streakWaveLength of the object initialised from 
                 the class PlateHeatExchangerSide. 
                 It represents the Wave length of the relief of the heat echanger plates
                 unIy:mm
             
             plateNumber(type:float, Nonetype or :obj:np.float64): 
-                This parameter indicates the private attribute plateNumber of the object created from 
+                This parameter indicates the private attribute plateNumber of the object initialised from 
                 the class PlateHeatExchangerSide. 
                 It represents the number of plates of the heat exchanger
             
             angle(type:float, Nonetype or :obj:np.float64): 
-                This parameter indicates the private attribute angle of the object created from 
+                This parameter indicates the private attribute angle of the object initialised from 
                 the class PlateHeatExchangerSide. 
                 It represents the angle of the relief on the surface of the plates.
                 unity:°
 
             length(type:float, Nonetype or :obj:np.float64): 
-                This parameter indicates the private attribute length of the object created from 
+                This parameter indicates the private attribute length of the object initialised from 
                 the class PlateHeatExchangerSide. 
                 It represents the length of the plates of the heat exchanger.
                 unity:m
             
             Npasse(type:int, Nonetype or :obj:np.int64): 
-                This parameter indicates the private attribute Npasses of the object created from 
+                This parameter indicates the private attribute Npasses of the object initialised from 
                 the class PlateHeatExchangerSide. 
                 It represents the number of pass of the heat exchanger.
             
             hydraulicCorrectingFactor(type:float or :obj:np.float64): 
-                This parameter indicates the private attribute hydraulicCorrectingFactor of the object created from 
+                This parameter indicates the private attribute hydraulicCorrectingFactor of the object initialised from 
                 the class PlateHeatExchangerSide. 
                 It's a parameter to minimize the error between the manufacturer and the hydraulic computation.
             
             thermicCorrectingFactor(type:float or :obj:np.float64): 
-                This parameter indicates the private attribute thermicCorrectingFactor of the object created from 
+                This parameter indicates the private attribute thermicCorrectingFactor of the object initialised from 
                 the class PlateHeatExchangerSide. 
                 It's a parameter to minimize the error between the manufacturer and the thermic computation.
 
             downstreamPole (:obj:Pole): 
                 This parameter indicates the private attribute Poles[0] of the 
-                object created from the Edge class (the parent class of Dipole). 
+                object initialised from the Edge class (the parent class of Dipole). 
                 It represents the pole where the fluid enters into the dipole (or the
                 dipole entry). By default all the states attributes of the object downstreamPole 
                 are undefined (with the None variable).
 
             upstreamPole (:obj:Pole): 
                 This parameter indicates the private attribute Poles[1] of the 
-                object created from the Edge class (the parent class of Dipole). 
+                object initialised from the Edge class (the parent class of Dipole). 
                 It represents the pole where the fluid exits the dipole (or the
                 dipole outlet). By default all the states attributes of the object 
                 upstreamPole are undefined (with the None variable).
 
             flow(:obj: Flow): 
-                This parameter indicates the private attribute flow of the object created from 
+                This parameter indicates the private attribute flow of the object initialised from 
                 the class Dipole. 
                 It represents the state of the flow of the dipole. By default all the states
                 attributes of the object flow are undefined (with the None variable).
@@ -880,12 +919,12 @@ class PlateHeatExchangerSide(Dipole):
 
         # calcul of the hydraulic diameter
         x = 2 * pi * plateGap / streakWaveLength
-        phi = 1 / 6 * (1 + (1 + x ** 2) ** (1/2) + 4 * (1 + x ** 2/2) ** (1/2))
+        phi = 1 / 6 * (1 + (1 + x ** 2) ** (1/2) + 4 * (1 + x ** 2) ** (1/2))
         hydraulicDiameter = 4 * plateGap / phi
 
 
         # calcul of the cross sectionnal area 
-        crossSectionalArea = (plateNumber - 1) * plateGap * 10 ** (-3) * width / 2 
+        crossSectionalArea = (plateNumber - 1) * plateGap * 10 ** (-3) * width / 2 / Npasse
 
  
         # the caracteristics are fixed to [True, False] because it only have an hydraulic caracteristic,
@@ -951,7 +990,15 @@ class PlateHeatExchangerSide(Dipole):
         if type(width) is not type(None):
             if width < 0:
                 raise ValueError('width must be positive')
+        plateGap = self.plateGap
+        Npasse = self.Npasse
+        plateNumber = self.plateNumber
+
+        # calcul of the cross sectionnal area 
+        crossSectionalArea = (plateNumber - 1) * plateGap * 10 ** (-3) * width / 2 / Npasse
+
         self.__width = width
+        self.crossSectionalArea = crossSectionalArea
 
     @property 
     def plateGap(self): 
@@ -964,7 +1011,24 @@ class PlateHeatExchangerSide(Dipole):
         if type(plateGap) is not type(None):
             if plateGap < 0:
                 raise ValueError('plateGap must be positive')
+        
+        width = self.width
+        streakWaveLength = self.streakWaveLength
+        plateNumber = self.plateNumber
+        Npasse = self.Npasse
+
+        # calcul of the hydraulic diameter
+        x = 2 * pi * plateGap / streakWaveLength
+        phi = 1 / 6 * (1 + (1 + x ** 2) ** (1/2) + 4 * (1 + x ** 2) ** (1/2))
+        hydraulicDiameter = 4 * plateGap / phi
+
+
+        # calcul of the cross sectionnal area 
+        crossSectionalArea = (plateNumber - 1) * plateGap * 10 ** (-3) * width / 2 / Npasse
+
         self.__plateGap = plateGap
+        self.__hydraulicDiameter = hydraulicDiameter
+        self.__crossSectionalArea = crossSectionalArea
     
     @property 
     def streakWaveLength(self): 
@@ -977,7 +1041,16 @@ class PlateHeatExchangerSide(Dipole):
         if type(streakWaveLength) is not type(None):
             if streakWaveLength < 0:
                 raise ValueError('streakWaveLength must be positive')
+        
+        plateGap = self.plateGap
+
+        # calcul of the hydraulic diameter
+        x = 2 * pi * plateGap / streakWaveLength
+        phi = 1 / 6 * (1 + (1 + x ** 2) ** (1/2) + 4 * (1 + x ** 2) ** (1/2))
+        hydraulicDiameter = 4 * plateGap / phi
+
         self.__streakWaveLength = streakWaveLength
+        self.__hydraulicDiameter = hydraulicDiameter
     
     @property 
     def plateNumber(self): 
@@ -989,7 +1062,16 @@ class PlateHeatExchangerSide(Dipole):
         typeErrorAtEntering( plateNumber, Types = [int], Classes = [np.int64], message = "the plateNumber must be a integer number")
         if plateNumber < 1:
             raise ValueError("the number of plates must be a positive integer superior to 1")
+        
+        width = self.width
+        plateGap = self.plateGap
+        Npasse = self.Npasse
+
+        # calcul of the cross sectionnal area 
+        crossSectionalArea = (plateNumber - 1) * plateGap * 10 ** (-3) * width / 2 / Npasse
+
         self.__plateNumber = plateNumber
+        self.__crossSectionalArea = crossSectionalArea
 
     @property 
     def angle(self): 
@@ -1026,6 +1108,14 @@ class PlateHeatExchangerSide(Dipole):
         typeErrorAtEntering( Npasse, Types = [int], Classes = [np.int64], message = "the Npasse must be a integer number")
         if Npasse < 1:
             raise ValueError("the number of plates must be a positive integer superior to 1")
+
+        width = self.width
+        plateGap = self.plateGap
+
+        # calcul of the cross sectionnal area 
+        crossSectionalArea = (plateNumber - 1) * plateGap * 10 ** (-3) * width / 2 / Npasse
+
+        self.__crossSectionalArea = crossSectionalArea
         self.__Npasse = Npasse
 
     @property 
@@ -1062,7 +1152,7 @@ class PlateHeatExchangerSide(Dipole):
 
         Note: 
             When this method is defined, it take into account the caracteristics
-            of the object created from the class Dipole and the reynolds number of 
+            of the object initialised from the class Dipole and the reynolds number of 
             the flow to give head loss coefficient of the formula :
             Delta P = headLossCoefficient * volumetricMass * 1/2 * v ** 2
             with  :
@@ -1112,7 +1202,7 @@ class PlateHeatExchangerSide(Dipole):
         if hydraulicDiameter == None:
             hydraulicDiameter = self.hydraulicDiameter
 
-        #exceptions are created :
+        #exceptions are initialised :
         typeErrorAtEntering(angle, message = "the angle must be a float number")
         if angle <0 or angle >90:
             raise ValueError("the angle must be 0 and 90 degree")
@@ -1173,7 +1263,7 @@ class PlateHeatExchangerSide(Dipole):
 
         Note: 
             When this method is defined, it take into account the hydraulicCaracteristics
-            of the object created from the class Dipole and the flow rate and the 
+            of the object initialised from the class Dipole and the flow rate and the 
             fluid to compute the difference of pressure between the outlet and the
             inlet of the dipole. 
             This hydraulicCaracteristic can be deduced from the hydraulic correlation, if it's
@@ -1221,7 +1311,7 @@ class PlateHeatExchangerSide(Dipole):
 
         Note: 
             It take into account the caracteristics
-            of the object created from the class Dipole, the reynolds number and
+            of the object initialised from the class Dipole, the reynolds number and
             the prandtl number to give the Nusselt number
 
         Args:
@@ -1250,7 +1340,6 @@ class PlateHeatExchangerSide(Dipole):
                 If the thermicCorrectingFactor is equal to None, then 
                 the thermicCorrectingFactor taken into account is taken 
                 from the dipole object.
-                unity: m
 
         Returns:
             NusseltNumber(type:float)
@@ -1290,6 +1379,8 @@ class PlateHeatExchangerSide(Dipole):
         if Npasse < 1:
             raise ValueError("the number of passe must be a positive integer superior to 1")
 
+        typeErrorAtEntering(prandtlNumber, message = "the prandtl number must be a float number")
+
         typeErrorAtEntering(thermicCorrectingFactor, message = "the thermicCorrectingFactor must be a float number")
         if thermicCorrectingFactor <= 0 :
             raise TypeError("the hydraulic correcting factor must be a strictly positive float close to 1")
@@ -1304,37 +1395,441 @@ class PlateHeatExchangerSide(Dipole):
 
         return nusseltNumber * thermicCorrectingFactor
 
-        
 class IdealPump(Dipole):
-    #l'initialisation de la classe : 
-    def __init__(self,name = 'Ideal Pump', hydraulicDiameter = None, crossSectionalArea = None ,flowRate = None, fluid = Fluid(), inputTemperature = None, downstreamPole = Pole("downstream pole"), upstreamPole = Pole("upstream Pole")) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(fluid = fluid, flowRate = flowRate, inputTemperature = inputTemperature), variables=[False,True, True, False])
+    def __init__(self,name = 'Ideal Pump', hydraulicDiameter = None, crossSectionalArea = None,
+                flowRate = None, fluid = Fluid(), inputTemperature = None, thermicPower = 0.0,
+                downstreamPole = Pole("downstream pole"), upstreamPole = Pole("upstream Pole")) : 
+        """Class IdealPump __init__ method : 
+        
+        Note : 
+            The class IdealPump is used to fixe a flowRate in any point in the hydraulic Network.
+            for example it can be used when it's convenient to know the HMT for a given flow rate.
+
+            the __init__ method offers the opportunity to give the attributes of the idealpump object.
+
+        Args:
+            name( type:any ): 
+                this parameters indicates the private attribute name. This parameter gives 
+                the user the opportunity to organise his dipole objects.
+
+            hydraulicDiameter (type:float,Nonetype or :obj:np.float64): 
+                This parameter indicates the private attribute hydraulicDiameter of the 
+                dipole object initialised from the class Dipole. 
+                It represents the caracteristical length in the dipole to computes the 
+                reynolds or other important numbers.
+                unity : m
+
+            crossSectionnalArea (type:float,Nonetype or :obj:np.float64): 
+                This parameter indicates the private attribute crossSectionalArea of the object 
+                initialised from the Dipole class. 
+                It represents the sectionnal area of the flow, it's an important parameter to compute 
+                the average velocity of the fluid into the dipole.
+                unity : m²
+
+            downstreamPole (:obj:Pole): 
+                This parameter indicates the private attribute Poles[0] of the 
+                object initialised from the Edge class (the parent class of Dipole). 
+                It represents the pole where the fluid enters into the dipole (or the
+                dipole entry). By default all the states attributes of the object downstreamPole 
+                are undefined (with the None variable).
+
+            upstreamPole (:obj:Pole): 
+                This parameter indicates the private attribute Poles[1] of the 
+                object initialised from the Edge class (the parent class of Dipole). 
+                It represents the pole where the fluid exits the dipole (or the
+                dipole outlet). By default all the states attributes of the object 
+                upstreamPole are undefined (with the None variable).
+
+            flowRate(type:float,Nonetype or :obj:np.float64): 
+                This parameter indicates the private attribute flowrate of the attribute object flow, it initialised 
+                from the class Flow. 
+                It represents the fixed flowRate of the functionnement of the pump.
+                unity:m³/s
+
+            fluid(:obj: Fluid): 
+                This parameter indicates the private attribute fluid of the attribute object flow, it initialised 
+                from the class Flow. 
+                It represents the state of the flow of the dipole. By default all the states
+                attributes of the object flow are undefined (with the None variable).
+            
+            inputTemperature(type:float,Nonetype or :obj:np.float64): 
+                This parameter indicates the private attribute inputTemperature of the attribute object flow, it initialised 
+                from the class Flow. 
+                It the temperature of the fluid pumped, it's not necessary to enter this variable here, but in the majority
+                of case the pump are at the input of the Hydraulic Network.
+                unity:°C
+            
+            thermicPower(type:float,Nonetype or :obj:np.float64): 
+                This parameter allows the class to build a constant thermic caracteristic. By default, it's equal to 0, but
+                for real pump there is always some thermic transfert.
+
+        Raises : 
+            TypeError : 
+                It's raised by the function typeErrorAtEntering when the Types and the object
+                don't match with the type and the object defined.
+            ValueError: 
+                If the variables haven't the physical reality, example : hydraulicDiameter < 0
+
+        """
+
+        typeErrorAtEntering(inputTemperature,Types = [float, type(None)], message = "the inputTemperature must be a float or a None type") 
+        if inputTemperature == None:
+            variables = [False, True, True, True]
+        
+        #initalisation of the class Dipole with the informations
+        Dipole.__init__(self, name = name, hydraulicDiameter = hydraulicDiameter, crossSectionalArea = crossSectionalArea, 
+                        downStreamPole = downstreamPole, upstreamPole = upstreamPole, flow = Flow(fluid = fluid, flowRate = flowRate,
+                        inputTemperature = inputTemperature), variables=[False,True, False, True], caracteristics=[False, True], 
+                        exchanger = False)
+
+        typeErrorAtEntering( thermicPower, message = "the thermicPower must be a float number")
+      
+        #if the input temperature is fixed, the input temperature is fixed as a variable :
+        if inputTemperature == None:
+            variables = [False, True, True, True]
+        # the temperature is fixed in the object link to the pump :
         downstreamPole.temperature = inputTemperature
         self.flow.inputTemperature = inputTemperature
-        self.flow.temperatureDifference = 0.0
+
+        #definition of the thermic caracteristic
+        def buildThermicCaracteristic():
+            thermalPower = thermicPower
+            def thermicCaracteristic(flowRate = None, fluid = None):
+                """ the method thermicCaracteristic 
+
+                Note: 
+                    When this method is defined, it take into account the caracteristics
+                    of the object initialised from the class Dipole, the flow rate and the 
+                    fluid to compute the thermal power given to the fluid.
+                Args:
+                    flowRate(type:float or None type):
+                        If the flowRate is equal to None, the flowRate use for the calcul
+                        is the flowRate from the flow object attribute.
+                        unity:m³/s
+                    fluid(:obj: Fluid, type:None type):
+                        If the fluid is equal to None, the fluid taken into account
+                        is the fluid from the flow object attribute.
+
+                Returns:
+                    thermalPower(type:float): It's the thermal energy transfered to the fluid
+                    unity : J
+                                
+                Raises: 
+                    TypeError : If flowRate is not a float 
+
+
+                """
+                #takes the intern variables if undefined
+                if flowRate == None:
+                    flowRate = self.flow.flowRate
+                if fluid == None:
+                    fluid = self.flow.fluid
+
+                return thermalPower
+        
+        self.thermicCaracteristic = buildThermicCaracteristic()
+        self.__thermicPower = thermicPower
+    
+    @property 
+    def thermicPower(self): 
+        """ get and set allows the user to modify the private thermicPower attribute """
+        return self.__thermicPower
+
+    @thermicPower.setter 
+    def thermicPower(self,thermicPower): 
+        typeErrorAtEntering(thermicPower, message = "the thermicPower must be a float number")
+        #definition of the thermic caracteristic
+        def buildThermicCaracteristic():
+            thermalPower = thermicPower
+            def thermicCaracteristic(flowRate = None, fluid = None):
+                """ the method thermicCaracteristic 
+
+                Note: 
+                    When this method is defined, it take into account the caracteristics
+                    of the object initialised from the class Dipole, the flow rate and the 
+                    fluid to compute the thermal power given to the fluid.
+                Args:
+                    flowRate(type:float or None type):
+                        If the flowRate is equal to None, the flowRate use for the calcul
+                        is the flowRate from the flow object attribute.
+                        unity:m³/s
+                    fluid(:obj: Fluid, type:None type):
+                        If the fluid is equal to None, the fluid taken into account
+                        is the fluid from the flow object attribute.
+
+                Returns:
+                    thermalPower(type:float): It's the thermal energy transfered to the fluid
+                    unity : J
+                                
+                Raises: 
+                    TypeError : If flowRate is not a float 
+
+
+                """
+                #takes the intern variables if undefined
+                if flowRate == None:
+                    flowRate = self.flow.flowRate
+                if fluid == None:
+                    fluid = self.flow.fluid
+
+                return thermalPower
+        self.thermicCaracteristic = buildThermicCaracteristic()
+        self.__thermicPower = thermicPower
+
+        
+
 
 
 class Pump(Dipole):
     #l'initialisation de la classe : 
-    def __init__(self,name = 'Pump', hydraulicDiameter = None, crossSectionalArea = None ,flowRates = [], overPressures = [], fluid = Fluid(), inputTemperature = None, downstreamPole = Pole("downstream pole"), upstreamPole = Pole("upstream Pole"), temperatureDifference = 0.0) : 
-        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, flow = Flow(fluid = fluid, inputTemperature = inputTemperature), variables=[True,True, True, False])
-        if (type(flowRates) is not list and not(isinstance(flowRates,np.ndarray))) or (type(overPressures) is not list and not(isinstance(overPressures,np.ndarray))):
-            raise TypeError('flowRates and overPressures must be a list of functionnement points')
-        downstreamPole.temperature = inputTemperature
-        self.flow.temperatureDifference = temperatureDifference
-        def caracteristic(flowRate = None):
-            if flowRate == None:
-                flowRate = self.flow.flowRate
-            ex.typeErrorAtEntering(flowRate, message = 'the flowRate must be a float number')
-            carac = DataAnalysis.interpolation(flowRates,overPressures)
-            return carac(flowRate)
-        self.caracteristic = caracteristic
+    def __init__(self,name = 'Pump', hydraulicDiameter = None, crossSectionalArea = None ,flowRates = [], 
+                overPressures = [], fluid = Fluid(), inputTemperature = None, thermicPower = 0.0, 
+                downstreamPole = Pole("downstream pole"), upstreamPole = Pole("upstream Pole"), temperatureDifference = 0.0) : 
+        """Class Pump __init__ method : 
+        
+        Note : 
+            The class Pump is used when the caracteristic of the pump is knew, to test the real application
+            of a pump.
+
+            the __init__ method offers the opportunity to give the attributes of the idealpump object.
+
+        Args:
+            name( type:any ): 
+                this parameters indicates the private attribute name. This parameter gives 
+                the user the opportunity to organise his dipole objects.
+
+            hydraulicDiameter (type:float,Nonetype or :obj:np.float64): 
+                This parameter indicates the private attribute hydraulicDiameter of the 
+                dipole object initialised from the class Dipole. 
+                It represents the caracteristical length in the dipole to computes the 
+                reynolds or other important numbers.
+                unity : m
+
+            crossSectionnalArea (type:float,Nonetype or :obj:np.float64): 
+                This parameter indicates the private attribute crossSectionalArea of the object 
+                initialised from the Dipole class. 
+                It represents the sectionnal area of the flow, it's an important parameter to compute 
+                the average velocity of the fluid into the dipole.
+                unity : m²
+
+            downstreamPole (:obj:Pole): 
+                This parameter indicates the private attribute Poles[0] of the 
+                object initialised from the Edge class (the parent class of Dipole). 
+                It represents the pole where the fluid enters into the dipole (or the
+                dipole entry). By default all the states attributes of the object downstreamPole 
+                are undefined (with the None variable).
+
+            upstreamPole (:obj:Pole): 
+                This parameter indicates the private attribute Poles[1] of the 
+                object initialised from the Edge class (the parent class of Dipole). 
+                It represents the pole where the fluid exits the dipole (or the
+                dipole outlet). By default all the states attributes of the object 
+                upstreamPole are undefined (with the None variable).
+
+            flowRates(type:list of float or :obj:array of np.float64): 
+                This parameter indicates the x coordonate of the caracteristic of the pump.
+                It allows the code to create a caracteristic function.
+                unity:m³/s
+
+            overPressures(type:list of float or :obj:array of np.float64): 
+                This parameter indicates the z coordonate of the caracteristic of the pump.
+                It allows the code to create a caracteristic function.
+                unity:Pa
+
+            fluid(:obj: Fluid): 
+                This parameter indicates the private attribute fluid of the attribute object flow, it's initialised 
+                from the class Flow. 
+                It represents the state of the flow of the dipole. By default all the states
+                attributes of the object flow are undefined (with the None variable).
             
+            inputTemperature(type:float,Nonetype or :obj:np.float64): 
+                This parameter indicates the private attribute inputTemperature of the attribute object flow, it's initialised 
+                from the class Flow. 
+                It the temperature of the fluid pumped, it's not necessary to enter this variable here, but in the majority
+                of case the pump are at the input of the Hydraulic Network.
+                unity:°C
+            
+            thermicPower(type:float,Nonetype or :obj:np.float64): 
+                This parameter allows the class to build a constant thermic caracteristic. By default, it's equal to 0, but
+                for real pump there is always some thermic transfert.
+
+        Raises : 
+            TypeError : 
+                It's raised by the function typeErrorAtEntering when the Types and the object
+                don't match with the type and the object defined.
+            ValueError: 
+                If the variables haven't the physical reality, example : hydraulicDiameter < 0
+
+        """
+        typeErrorAtEntering(inputTemperature,Types = [float, type(None)], message = "the inputTemperature must be a float or a None type") 
+        if inputTemperature == None:
+            variables = [True, True, True, True]
+
+        #the informations are fixed in the parent class Dipole
+        Dipole.__init__(self, name, hydraulicDiameter, crossSectionalArea, downstreamPole, upstreamPole, 
+        flow = Flow(fluid = fluid, inputTemperature = inputTemperature), variables=[True,True, False, True],
+        caracteristics=[True, True], exchanger=False)
+
+        #raise of exceptions
+        typeErrorAtEntering(flowRates, Types = [list], Classes=[np.ndarray],
+                            message = "the flowRates must be a list of float") 
+        for flowRate in flowRates:
+            typeErrorAtEntering(flowRate, message = "the flowRates must be a list of float") 
+
+        typeErrorAtEntering(overPressures, Types = [list], Classes=[np.ndarray],
+                            message = "the overPressures must be a list of float") 
+        for overPressure in overPressures:
+            typeErrorAtEntering(overPressure, message = "the overPressures must be a list of float") 
+
+        downstreamPole.temperature = inputTemperature
+
+        #build of the caracteristic with the interpollation of the points :
+        def buildingHydraulicCaracteristic():
+            #calling of the function DataAnalysis.interpolation which build the function 
+            carac = DataAnalysis.interpolation(flowRates,overPressures)
+            #creation of the function :
+            def hydraulicCaracteristic(flowRate = None):
+                """ the method hydraulicCaracteristic 
+
+                Note: 
+                    When this method is defined, it take into account the hydraulicCaracteristics
+                    of the object initialised from the class Dipole and the flow rate and the 
+                    fluid to compute the difference of pressure between the outlet and the
+                    inlet of the dipole. 
+                    This hydraulicCaracteristic can be deduced from the hydraulic correlation, if it's
+                    defined.
+                Args:
+                    flowRate(type:float or None type):
+                        If the flowRate is equal to None, the flowRate use for the calcul
+                        is the flowRate from the flow object attribute.
+                        unity: defined by flowRateUnity
+
+                Returns:
+                    pressureDifference(type:float):
+                        unity: m³/s
+                                
+                Raises: 
+                    TypeError : If flowRate is not a float 
+                    TypeError : If fluid is not a Fluid object
+
+
+                """
+                #test if the flowRate is defined
+                if flowRate == None:
+                    flowRate = self.flow.flowRate
+                typeErrorAtEntering(flowRate, message = 'the flowRate must be a float number')
+
+                return carac(flowRate)
+            return hydraulicCaracteristic
+        self.hydraulicCaracteristic = buildingHydraulicCaracteristic
+
+        typeErrorAtEntering( thermicPower, message = "the thermicPower must be a float number")
+        #definition of the thermic caracteristic
+        def buildThermicCaracteristic():
+            thermalPower = thermicPower
+            def thermicCaracteristic(flowRate = None, fluid = None):
+                """ the method thermicCaracteristic 
+
+                Note: 
+                    When this method is defined, it take into account the caracteristics
+                    of the object initialised from the class Dipole, the flow rate and the 
+                    fluid to compute the thermal power given to the fluid.
+                Args:
+                    flowRate(type:float or None type):
+                        If the flowRate is equal to None, the flowRate use for the calcul
+                        is the flowRate from the flow object attribute.
+                        unity:m³/s
+                    fluid(:obj: Fluid, type:None type):
+                        If the fluid is equal to None, the fluid taken into account
+                        is the fluid from the flow object attribute.
+
+                Returns:
+                    thermalPower(type:float): It's the thermal energy transfered to the fluid
+                    unity : J
+                                
+                Raises: 
+                    TypeError : If flowRate is not a float 
+
+
+                """
+                #takes the intern variables if undefined
+                if flowRate == None:
+                    flowRate = self.flow.flowRate
+                if fluid == None:
+                    fluid = self.flow.fluid
+
+                return thermalPower
+            
+    @property 
+    def thermicPower(self): 
+        """ get and set allows the user to modify the private thermicPower attribute """
+        return self.__thermicPower
+
+    @thermicPower.setter 
+    def thermicPower(self,thermicPower): 
+        typeErrorAtEntering(thermicPower, message = "the thermicPower must be a float number")
+        #definition of the thermic caracteristic
+        def buildThermicCaracteristic():
+            thermalPower = thermicPower
+            def thermicCaracteristic(flowRate = None, fluid = None):
+                """ the method thermicCaracteristic 
+
+                Note: 
+                    When this method is defined, it take into account the caracteristics
+                    of the object initialised from the class Dipole, the flow rate and the 
+                    fluid to compute the thermal power given to the fluid.
+                Args:
+                    flowRate(type:float or None type):
+                        If the flowRate is equal to None, the flowRate use for the calcul
+                        is the flowRate from the flow object attribute.
+                        unity:m³/s
+                    fluid(:obj: Fluid, type:None type):
+                        If the fluid is equal to None, the fluid taken into account
+                        is the fluid from the flow object attribute.
+
+                Returns:
+                    thermalPower(type:float): It's the thermal energy transfered to the fluid
+                    unity : J
+                                
+                Raises: 
+                    TypeError : If flowRate is not a float 
+
+
+                """
+                #takes the intern variables if undefined
+                if flowRate == None:
+                    flowRate = self.flow.flowRate
+                if fluid == None:
+                    fluid = self.flow.fluid
+
+                return thermalPower
+        self.thermicCaracteristic = buildThermicCaracteristic()
+        self.__thermicPower = thermicPower
+
     def hydraulicPower(self, flowRate = None):
+        """ the method hydraulicPower 
+
+                Note: 
+                    When this method is defined, it take into account the caracteristics
+                    of the object initialised from the class Dipole, the flow rate and the 
+                    fluid to compute the hydraulic power of the pump.
+                Args:
+                    flowRate(type:float or None type):
+                        If the flowRate is equal to None, the flowRate use for the calcul
+                        unity:m³/s
+
+                Returns:
+                    hydraulicPower(type:float): It's hydraulic energy raised by the pump
+                    unity : J
+                                
+                Raises: 
+                    TypeError : If flowRate is not a float 
+
+
+        """
         if flowRate == None:
             flowRate = self.flow.flowRate
-        ex.typeErrorAtEntering(flowRate, message = 'the flowRate must be a float number')
-        #print(self.caracteristic(flowRate), flowRate)
+        typeErrorAtEntering(flowRate, message = 'the flowRate must be a float number')
         return self.caracteristic(flowRate) * flowRate
 
 #tests
