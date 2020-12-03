@@ -20,6 +20,45 @@ from FlowFolder.Flow import Flow
 from ExceptionsAndErrors import typeErrorAtEntering
 
 class HeatExchanger:
+    """The heatExchanger class is used to represent any thermic 
+    transfert between Warm different flows.
+
+    Attributes:
+        name( type:any ): 
+            This parameter gives the user the opportunity to organise his dipole objects.
+
+        materialConductivity (type:float,Nonetype or :obj:np.float64): 
+            It represents how much the material between the 2 flows can conduct the heat.
+            By default it's equal to 21.9 because it's the titanium conductivity.
+            unity : W/m/K
+
+        globalThermicCoefficient(type:float,Nonetype or :obj:np.float64): 
+            It represents the coefficient K in the formula :
+                Q = K S DTLM
+            where:
+                - Q is the thermal power exchanged
+                - S is the exchange surface 
+                - DTLM is average logithmic difference between the 2 flows.
+            unity : W/m²/K
+
+        exchangeSurface(type:float,Nonetype or :obj:np.float64): 
+            It represents contact surface of between the 2 flows.
+            unity : m²
+        
+        hydraulicDipoleCold( :obj:Dipole ): 
+            It represents one of the 2 dipole where one of the flow is flowing.
+            It is the dipole which the fluid enters with the coldest temperature of the 2. 
+
+        hydraulicDipoleWarm( :obj:Dipole )
+            It represents one of the 2 dipole where one of the flow is flowing.
+            It is the dipole which the fluid enters with the warmest temperature of the 2. 
+        
+        stateEquations(type: function)
+            It represents the 2 equations that flows in each part of the heat exchanger 
+            have to follow. It's build by the function : stateEquationDefinition.
+        
+
+        """
     def __init__(self,name = 'heat exchanger', materialConductivity = 21.9,exchangeSurface = 600, 
                 hydraulicDipoleCold = None,hydraulicDipoleWarm = None, globalThermicCoefficient = 5000, 
                 downstreamPoleCold = Pole('downstreamPoleCold'), upstreamPoleCold = Pole('upstreamPoleCold'), 
@@ -29,7 +68,7 @@ class HeatExchanger:
         Note : 
             The heatExchanger class is used to represent any thermic transfert between Warm different flows.
  
-            the __init__ method offers the opportunity to give the attributes of the dipole object.
+            the __init__ method offers the opportunity to give the attributes of the exchanger object.
 
         Args:
             name( type:any ): 
@@ -113,7 +152,7 @@ class HeatExchanger:
 
     @property 
     def materialConductivity(self): 
-       """ get method and set method to access the private variable materialConductivity """
+        """ get method and set method to access the private variable materialConductivity """
         return self.__materialConductivity
 
     @materialConductivity.setter 
@@ -157,9 +196,15 @@ class HeatExchanger:
         return self.__globalThermicCoefficient
 
     @globalThermicCoefficient.setter 
-    def globalThermicCoefficient(self,hydraulicDipoleWarm): 
+    def globalThermicCoefficient(self,globalThermicCoefficient): 
         typeErrorAtEntering(globalThermicCoefficient,Types = [float, type(None)], message = "the globalThermicCoefficient must be a float or a None type")
         self.__globalThermicCoefficient = globalThermicCoefficient
+    
+    @property 
+    def stateEquations(self): 
+        """ get method to access the private variable stateEquations """
+        return self.__stateEquations
+
 
     def NUT(self, globalThermicCoefficient = None, exchangeSurface = None, volumetricMassCold = None, 
             thermicCapacityCold = None, flowRateCold = None, volumetricMassWarm = None, thermicCapacityWarm = None, 
@@ -323,14 +368,180 @@ class HeatExchanger:
     
 
     
-    def stateEquation(self, flowRateCold = None, flowRateWarm = None, inputTemperatureCold = None, inputTemperatureWarm = None,
-                        outletTemperatureCold = None, outletTempertureWarm = None, variables = [False, False, False, False, True, True],
-                        averagePressureCold = None, averaPressureWarm = None, modify = True):
-        """ the method stateEquation
+    def stateEquationDefinition(self, averagePressureCold = None, averagePressureWarm = None, modify = True):
+        """ the method stateEquationDefinition
 
         Note: 
-            this method allow the class to calcul the variables wanted
-            from the others fixed variables.
+            this method allow the class to create the function state
+            equations.
+        Args:
+            averagePressureWarm(type:float,Nonetype or :obj:np.float64): 
+                It's the fixed cold pressure in the exhanger.
+                It's fixed to 10 ** 5 if not defined.
+            unity:m³/s
+
+            averagePressureCold(type:float,Nonetype or :obj:np.float64): 
+                It's the fixed warm pressure in the exhanger.
+                It's fixed to 10 ** 5 if not defined.
+            unity: Pa
+                        
+        Raises: 
+            TypeError : If types don't match.
+
+
+        """
+        #definition of the variables :
+        flowCold = self.hydraulicDipoleCold.flow
+        flowWarm = self.hydraulicDipoleWarm.flow
+
+        #cold side
+        if averagePressureCold == None:
+            try:
+                averagePressureCold = self.hydraulicDipoleCold.downstreamPole.pressure + \
+                                self.hydraulicDipoleCold.upstreamPole.pressure
+            except TypeError:
+                #if the pressure is not defined, gives the atmospheric pressure value : 
+                averagePressureCold = 10 ** 5 
+        
+        #warm side
+        if averagePressureWarm == None:
+            try:
+                averagePressureWarm = self.hydraulicDipoleWarm.downstreamPole.pressure + \
+                                self.hydraulicDipoleWarm.upstreamPole.pressure
+            except TypeError:
+                #if the pressure is not defined, gives the atmospheric pressure value : 
+                averagePressureWarm = 10 ** 5 
+        
+        #taking the function from the fluid objects by redefining them
+        #cold side
+        if isinstance(flowCold.fluid, SeaWater):
+            salinity = flowCold.fluid.salinity
+            volumetricMassCold = lambda T, P: flowCold.fluid.volumetricMassEvolution(T, P, salinity)
+            dynamicViscosityCold = lambda T, P: flowCold.fluid.dynamicViscosityEvolution(T, P, salinity)
+            thermicCapacityCold = lambda T, P: flowCold.fluid.thermicCapacityEvolution(T, P, salinity)
+            thermicConductivityCold = lambda T, P: flowCold.fluid.thermicConductivityEvolution(T, P, salinity)
+        else :
+            volumetricMassCold = lambda T, P: flowCold.fluid.volumetricMassEvolution(T, P)
+            dynamicViscosityCold = lambda T, P: flowCold.fluid.dynamicViscosityEvolution(T, P)
+            thermicCapacityCold = lambda T, P: flowCold.fluid.thermicCapacityEvolution(T, P)
+            thermicConductivityCold = lambda T, P: flowCold.fluid.thermicConductivityEvolution(T, P)
+        
+        #warm side
+        if isinstance(flowWarm.fluid, SeaWater):
+            salinity = flowWarm.fluid.salinity
+            volumetricMassWarm = lambda T, P: flowWarm.fluid.volumetricMassEvolution(T, P, salinity)
+            dynamicViscosityWarm = lambda T, P: flowWarm.fluid.dynamicViscosityEvolution(T, P, salinity)
+            thermicCapacityWarm = lambda T, P: flowWarm.fluid.thermicCapacityEvolution(T, P, salinity)
+            thermicConductivityWarm = lambda T, P: flowWarm.fluid.thermicConductivityEvolution(T, P, salinity)
+        else :
+            volumetricMassWarm = lambda T, P: flowWarm.fluid.volumetricMassEvolution(T, P)
+            dynamicViscosityWarm = lambda T, P: flowWarm.fluid.dynamicViscosityEvolution(T, P)
+            thermicCapacityWarm = lambda T, P: flowWarm.fluid.thermicCapacityEvolution(T, P)
+            thermicConductivityWarm = lambda T, P: flowWarm.fluid.thermicConductivityEvolution(T, P)
+        
+        #taking the global thermic coefficient function by redefining it:
+        def constructor():
+            exchanger = self
+            def K(flowRateCold, meanTemperatureCold, flowRateWarm, meanTemperatureWarm):
+                #cold side
+                caracteristicalVelocityCold = flowRateCold / exchanger.hydraulicDipoleCold.crossSectionalArea
+                reynoldsNumberCold = HydraulicThermicCalculus.reynolds(exchanger.hydraulicDipoleCold.hydraulicDiameter,
+                                                                         caracteristicalVelocityCold, 
+                                                                         volumetricMassCold(meanTemperatureCold, averagePressureCold),
+                                                                         dynamicViscosityCold(meanTemperatureCold, averagePressureCold)) 
+                prandtlNumberCold = dynamicViscosityCold(meanTemperatureCold, averagePressureCold) \
+                                     * thermicCapacityCold(meanTemperatureCold, averagePressureCold) / thermicConductivityCold(meanTemperatureCold, averagePressureCold)
+                thermicConductivityColdFixed = thermicConductivityCold(meanTemperatureCold, averagePressureCold)
+                #warm side 
+                caracteristicalVelocityWarm = flowRateWarm / exchanger.hydraulicDipoleWarm.crossSectionalArea
+                reynoldsNumberWarm = HydraulicThermicCalculus.reynolds(exchanger.hydraulicDipoleWarm.hydraulicDiameter,
+                                                                         caracteristicalVelocityWarm, 
+                                                                         volumetricMassWarm(meanTemperatureWarm, averagePressureWarm),
+                                                                         dynamicViscosityWarm(meanTemperatureWarm, averagePressureWarm)) 
+                prandtlNumberWarm = dynamicViscosityWarm(meanTemperatureWarm, averagePressureWarm) \
+                                     * thermicCapacityWarm(meanTemperatureWarm, averagePressureWarm) / thermicConductivityWarm(meanTemperatureWarm, averagePressureWarm)
+                thermicConductivityWarmFixed = thermicConductivityWarm(meanTemperatureWarm, averagePressureWarm)
+
+                globalThermicCoefficient = exchanger.thermicTransfertCoefficient(reynoldsNumberCold = reynoldsNumberCold, prandtlNumberCold = prandtlNumberCold,
+                                                                    thermicConductivityCold = thermicConductivityColdFixed, reynoldsNumberWarm = reynoldsNumberWarm, 
+                                                                    prandtlNumberWarm = prandtlNumberWarm, thermicConductivityWarm = thermicConductivityWarmFixed)
+                return globalThermicCoefficient
+            return K
+        K = constructor()
+
+        #taking the exchange surface 
+        exchangeSurface = self.exchangeSurface
+
+        #taking the DTLM function by redefining it
+        DTLM = lambda inputTemperatureCold, outletTemperatureCold, inputTemperatureWarm, outletTemperatureWarm :\
+            self.DTLM(outletTemperatureCold, outletTemperatureWarm, inputTemperatureCold, inputTemperatureWarm)
+
+        def stateEquations(flowRateCold, flowRateWarm, inputTemperatureCold, inputTemperatureWarm,
+                        outletTemperatureCold, outletTemperatureWarm):
+            """ the method stateEquationDefinition
+
+        Note: 
+            this method is function of the six variables which follows 
+            to create, the state of the heat exchanger is find, when
+            the function is equal to 0.
+        Args:
+            flowRateCold(type:float,Nonetype or :obj:np.float64): 
+            unity:m³/s
+
+            flowRateWarm(type:float,Nonetype or :obj:np.float64): 
+            unity:m³/s
+
+            inputTemperatureCold(type:float,Nonetype or :obj:np.float64): 
+            unity:°C
+
+            inputTemperatureWarm(type:float,Nonetype or :obj:np.float64): 
+            unity:°C
+
+            outletTemperatureCold(type:float,Nonetype or :obj:np.float64): 
+            unity:°C
+
+            outletTemperatureWarm(type:float,Nonetype or :obj:np.float64): 
+            unity:°C
+
+
+        Returns:
+            EnergyEquation
+            DTLMequation
+
+
+        """
+            #computing the mean temperature:
+            meanTemperatureCold = inputTemperatureCold + outletTemperatureCold
+            meanTemperatureWarm = inputTemperatureWarm + outletTemperatureWarm
+
+            #computing of global thermic transfert coefficient:
+            globalThermicTransfertCoefficient = K(flowRateCold, meanTemperatureCold, flowRateWarm, meanTemperatureWarm)
+
+            #the energy conservation equation :
+            thermalPowerCold = flowRateCold * thermicCapacityCold(meanTemperatureCold, averagePressureCold) \
+                            * volumetricMassCold(meanTemperatureCold, averagePressureCold) * (outletTemperatureCold - inputTemperatureCold)
+            thermalPowerWarm = flowRateWarm * thermicCapacityWarm(meanTemperatureWarm, averagePressureWarm) \
+                            * volumetricMassWarm(meanTemperatureWarm, averagePressureWarm) * (inputTemperatureWarm - outletTemperatureWarm)
+            EnergyEquation = (thermalPowerCold - thermalPowerWarm) / globalThermicTransfertCoefficient / exchangeSurface
+
+            meanEnergy = thermalPowerCold + thermalPowerWarm
+            #the DTLM equation
+            DTLMequation = meanEnergy / globalThermicTransfertCoefficient / exchangeSurface \
+                 - DTLM(inputTemperatureCold, outletTemperatureCold, inputTemperatureWarm, outletTemperatureWarm)
+
+            return [EnergyEquation, DTLMequation]
+    
+        self.__stateEquations = stateEquations
+        return stateEquations
+
+    def resolutionStateEquations(self, flowRateCold = None, flowRateWarm = None, inputTemperatureCold = None, inputTemperatureWarm = None,
+                        outletTemperatureCold = None, outletTemperatureWarm = None, variables = [False, False, False, False, True, True],
+                        averagePressureCold = None, averagePressureWarm = None, modify = True, stateEquation = False):
+        """ the method resolutionStateEquations
+
+        Note: 
+            this method allow the class to resolve the function state
+            equations.
         Args:
             flowRateCold(type:float,Nonetype or :obj:np.float64): 
                 If it's a fixed variable, it's the fixed cold flow rate
@@ -392,6 +603,14 @@ class HeatExchanger:
                 states variables
             unity:°C
 
+            modify (boolean):
+                if modify == True then all the solutions will be stocked 
+                in the different classes attributes
+            
+            stateEquation (boolean):
+                if stateEquations = True, then the stateEquationDefinition
+                will be called.
+
 
         Returns:
             flowRateCold(type:float,Nonetype or :obj:np.float64): 
@@ -412,19 +631,12 @@ class HeatExchanger:
             outletWarmTemperature(type:float,Nonetype or :obj:np.float64): 
             unity:°C
 
-            exchangedThermicPower(type:float):
-            unity: W
-                        
         Raises: 
             TypeError : If types don't match.
 
 
         """
-        #definition of the variables :
-        flowCold = self.hydraulicDipoleCold.flow
-        flowWarm = self.hydraulicDipoleWarm.flow
-
-        #cold side
+       #cold side
         if flowRateCold == None:
             flowRateCold = flowCold.flowRate
         if inputTemperatureCold == None:
@@ -433,7 +645,7 @@ class HeatExchanger:
             outletTemperatureCold = flowCold.outletTemperature
         if averagePressureCold == None:
             try:
-            averagePressureCold = self.hydraulicDipoleCold.downstreamPole.pressure + \
+                averagePressureCold = self.hydraulicDipoleCold.downstreamPole.pressure + \
                                 self.hydraulicDipoleCold.upstreamPole.pressure
             except TypeError:
                 #if the pressure is not defined, gives the atmospheric pressure value : 
@@ -448,7 +660,7 @@ class HeatExchanger:
             outletTemperatureWarm = flowWarm.outletTemperature
         if averagePressureWarm == None:
             try:
-            averagePressureWarm = self.hydraulicDipoleWarm.downstreamPole.pressure + \
+                averagePressureWarm = self.hydraulicDipoleWarm.downstreamPole.pressure + \
                                 self.hydraulicDipoleWarm.upstreamPole.pressure
             except TypeError:
                 #if the pressure is not defined, gives the atmospheric pressure value : 
@@ -465,126 +677,148 @@ class HeatExchanger:
         typeErrorAtEntering(inputTemperatureWarm, message = "the inputTemperatureWarm must be a float number")
         typeErrorAtEntering(outletTemperatureWarm, message = "the outletTemperatureWarm must be a float number")
 
+
+        if self.stateEquations == None or stateEquation:
+            stateEquations = self.stateEquationDefinition(averagePressureCold,
+                                                         averagePressureWarm)
+        else:
+            stateEquation = self.stateEquations
+        # concatenation of the variables of the state equations as :
+        Variables = [None for v in variables]
+        Variables[0] = flowRateCold
+        Variables[1] = flowRateWarm
+        Variables[2] = inputTemperatureCold
+        Variables[3] = inputTemperatureWarm
+        Variables[4] = outletTemperatureCold
+        Variables[5] = outletTemperatureWarm
+
         
-        #taking the function from the fluid objects by redefining them
-        #cold side
-        if isinstance(flowCold.fluid, SeaWater):
-            salinity = flowCold.fluid.salinity
-            volumetricMassCold = lambda T, P: flowCold.fluid.volumetricMassEvolution(T, P, salinity)
-            dynamicViscosityCold = lambda T, P: flowCold.fluid.dynamicViscosityEvolution(T, P, salinity)
-            thermicCapacityCold = lambda T, P: flowCold.fluid.thermicCapacityEvolution(T, P, salinity)
-            thermicConductivityCold = lambda T, P: flowCold.fluid.thermicConductivityEvolution(T, P, salinity)
-        else :
-            volumetricMassCold = lambda T, P: flowCold.fluid.volumetricMassEvolution(T, P)
-            dynamicViscosityCold = lambda T, P: flowCold.fluid.dynamicViscosityEvolution(T, P)
-            thermicCapacityCold = lambda T, P: flowCold.fluid.thermicCapacityEvolution(T, P)
-            thermicConductivityCold = lambda T, P: flowCold.fluid.thermicConductivityEvolution(T, P)
+        #corresponding the varibables indices of the state equation
+        # with the 2 variables indices the user want to solve :
+        variablesToUnknown = {}
+        UnknownToVariables = {}
+        #unknown indice
+        k = 0
+        #estimation of unknown 
+        X0 = []
+        N = len(variables)
+        for i in range(N):
+            if variables[i]:
+                variablesToUnknown[i] = k
+                UnknownToVariables[k] = i
+                k += 1
+                X0.append(Variables[i])
+
+        if k > 2:
+            raise ValueError("to many unknowns")
+        #define an equation which takes a list that correspond to the list variables into argument:
+
+        #X is the unknown vector 
+        def newEquations(X):
+            N = len(variables)
+            Y = [0.0 for v in variables]
+            for i in range(N):
+                if variables[i]:
+                    Y[i] = X[variablesToUnknown[i]]
+                else:
+                    Y[i] = Variables[i]
+            return stateEquation(Y[0],Y[1],Y[2],Y[3],Y[4],Y[5])
+
+        #resolution
+        X = Resolve.multiDimensionnalNewtonResolution(newEquations, X0, 0.00001)
+        #update  of Variables
+        for k in range(len(X)):
+            Variables[UnknownToVariables[k]] = X[k]
         
-        #warm side
-        if isinstance(flowWarm.fluid, SeaWater):
-            salinity = flowWarm.fluid.salinity
-            volumetricMassWarm = lambda T, P: flowWarm.fluid.volumetricMassEvolution(T, P, salinity)
-            dynamicViscosityWarm = lambda T, P: flowWarm.fluid.dynamicViscosityEvolution(T, P, salinity)
-            thermicCapacityWarm = lambda T, P: flowWarm.fluid.thermicCapacityEvolution(T, P, salinity)
-            thermicConductivityWarm = lambda T, P: flowWarm.fluid.thermicConductivityEvolution(T, P, salinity)
-        else :
-            volumetricMassWarm = lambda T, P: flowWarm.fluid.volumetricMassEvolution(T, P)
-            dynamicViscosityWarm = lambda T, P: flowWarm.fluid.dynamicViscosityEvolution(T, P)
-            thermicCapacityWarm = lambda T, P: flowWarm.fluid.thermicCapacityEvolution(T, P)
-            thermicConductivityWarm = lambda T, P: flowWarm.fluid.thermicConductivityEvolution(T, P)
-        
-        #taking the global thermic coefficient function by redefining it:
-        def constructor():
-            exchanger = self
-            def K(flowRateCold, meanTemperatureCold, flowRateWarm, meanTemperatureWarm):
-                #cold side
-                caracteristicalVelocityCold = flowRateCold / exchanger.hydraulicDipoleCold.crossSectionalArea
-                reynoldsNumberCold = HydraulicThermicCalculus.reynolds(exchanger.hydraulicDipoleCold.hydraulicDiameter,
-                                                                         caracteristicalVelocityCold, 
-                                                                         volumetricMassCold(meanTemperatureCold, averagePressureCold),
-                                                                         dynamicViscosityCold(meanTemperatureCold, averagePressureCold)) 
-                prandtlNumberCold = dynamicViscosityCold(meanTemperatureCold, averagePressureCold) \
-                                     * thermicCapacityCold) / thermicConductivityCold(meanTemperatureCold, averagePressureCold)
-                thermicConductivityColdFixed = thermicConductivityCold(meanTemperatureCold, averagePressureCold)
-                #warm side 
-                caracteristicalVelocityWarm = flowRateWarm / exchanger.hydraulicDipoleWarm.crossSectionalArea
-                reynoldsNumberWarm = HydraulicThermicCalculus.reynolds(exchanger.hydraulicDipoleWarm.hydraulicDiameter,
-                                                                         caracteristicalVelocityWarm, 
-                                                                         volumetricMassWarm(meanTemperatureWarm, averagePressureWarm),
-                                                                         dynamicViscosityWarm(meanTemperatureWarm, averagePressureWarm)) 
-                prandtlNumberWarm = dynamicViscosityWarm(meanTemperatureWarm, averagePressureWarm) \
-                                     * thermicCapacityWarm) / thermicConductivityWarm(meanTemperatureWarm, averagePressureWarm)
-                thermicConductivityWarmFixed = thermicConductivityWarm(meanTemperatureWarm, averagePressureWarm)
-                globalThermicCoefficient = exchanger.globalThermicCoefficient(reynoldsNumberCold = reynoldsNumberCold, prandtlNumberCold = prandtlNumberCold,
-                                                                    thermicConductivityCold = thermicConductivityCold, reynoldsNumberWarm = reynoldsNumberWarm, 
-                                                                    prandtlNumberWarm = prandtlNumberWarm, thermicConductivityWarm = thermicConductivityWarm)
-                return globalThermicCoefficient
-            return K
-        K = constructor()
+        if modify:
+            #cold side
+            self.hydraulicDipoleCold.flow.flowRate = Variables[0]
+            self.hydraulicDipoleCold.flow.inputTemperature = Variables[2]
+            self.hydraulicDipoleCold.flow.outletTemperature = Variables[4]
+            #warm side
+            self.hydraulicDipoleWarm.flow.flowRate = Variables[1]
+            self.hydraulicDipoleWarm.flow.inputTemperature = Variables[3]
+            self.hydraulicDipoleWarm.flow.outletTemperature = Variables[5]
 
-        #taking the exchange surface 
-        exchangeSurface = self.exchangeSurface
-
-        #taking the DTLM function by redefining it
-        DTLM = lambda inputTemperatureCold, outletTemperatureCold, inputTemperatureWarm, outletTemperatureWarm :\
-            self.DTLM(outletTemperatureCold, outletTemperatureWarm, inputTemperatureCold, inputTemperatureWarm)
-
-        def stateEquations(flowRateCold, flowRateWarm, inputTemperatureCold, inputTemperatureWarm,
-                        outletTemperatureCold, outletTempertureWarm):
-            """ gives the 2 equations which an heat exchanger have to verify """
-            #computing the mean temperature:
-            meanTemperatureCold = inputTemperatureCold + outletTemperatureCold
-            meanTemperatureWarm = inputTemperatureWarm + outletTemperatureWarm
-
-            #computing of global thermic transfert coefficient:
-            globalThermicTransfertCoefficient = K(flowRateCold, meanTemperatureCold, flowRateWarm, meanTemperatureWarm)
-
-            #the energy conservation equation :
-            thermalPowerCold = flowRateCold * thermicCapacityCold(meanTemperatureCold, averagePressureCold) \
-                            * volumetricMassCold(meanTemperatureCold, averagePressureCold) * (outletTemperatureCold - inputTemperatureCold)
-            thermalPowerWarm = flowRateWarm * thermicCapacityWarm(meanTemperatureWarm, averagePressureWarm) \
-                            * volumetricMassWarm(meanTemperatureWarm, averagePressureWarm) * (inputTemperatureWarm - outletTemperatureWarm)
-            EnergyEquation = (thermalPowerCold - thermalPowerWarm) / globalThermicTransfertCoefficient / exchangeSurface
-
-            meanEnergy = thermalPowerCold + thermalPowerWarm
-            #the DTLM equation
-            DTLMequation = meanEnergy / globalThermicTransfertCoefficient / exchangeSurface \
-                 - DTLM(inputTemperatureCold, outletTemperatureCold, inputTemperatureWarm, outletTemperatureWarm)
-
-            return [EnergyEquation, DTLMequation]
-
-
+        return Variables
 
     def efficacity(self, NUT = None, rapport = None):
-    if NUT == None:
-        NUT = self.NUT()
-    if rapport == None:
-        flow1 = self.hydraulicDipole1.flow
-        flow2 = self.hydraulicDipole2.flow
-        hydraulicCapacity1 = flow1.flowRate * flow1.fluid.thermicCapacity * flow1.fluid.volumetricMass
-        hydraulicCapacity2 = flow2.flowRate * flow2.fluid.thermicCapacity * flow2.fluid.volumetricMass 
-        rapport = min(hydraulicCapacity1 / hydraulicCapacity2, hydraulicCapacity2 / hydraulicCapacity1)
-    if rapport != 1.0:
-        efficacity = (1 - exp(- NUT * (1 - rapport))) / (1 - rapport * (- NUT * (1 - rapport))) 
-    else :
-        efficacity = NUT / (1 + NUT)
-    return efficacity
+        if NUT == None:
+            NUT = self.NUT()
+        if rapport == None:
+            flow1 = self.hydraulicDipole1.flow
+            flow2 = self.hydraulicDipole2.flow
+            hydraulicCapacity1 = flow1.flowRate * flow1.fluid.thermicCapacity * flow1.fluid.volumetricMass
+            hydraulicCapacity2 = flow2.flowRate * flow2.fluid.thermicCapacity * flow2.fluid.volumetricMass 
+            rapport = min(hydraulicCapacity1 / hydraulicCapacity2, hydraulicCapacity2 / hydraulicCapacity1)
+        if rapport != 1.0:
+            efficacity = (1 - exp(- NUT * (1 - rapport))) / (1 - rapport * (- NUT * (1 - rapport))) 
+        else :
+            efficacity = NUT / (1 + NUT)
+        return efficacity
 
 
 
 class PlateExchanger(HeatExchanger):
+    """The PlateExchanger class is used to represent the plate type of
+    heat exchangers.It's a child class from the class HeatExchanger. 
+
+    Attributes:
+        name( type:any ): 
+                this parameters indicates the private attribute name. This parameter gives 
+                        the user the opportunity to organise his dipole objects.
+
+            materialConductivity (type:float,Nonetype or :obj:np.float64): 
+                It represents how much the material between the 2 flows can conduct the heat.
+                By default it's equal to 21.9 because it's the titanium conductivity.
+                unity : W/m/K
+
+            width (type:float,Nonetype or :obj:np.float64): 
+                It represents the caracteristical width of the exchanger.
+                unity : m
+            
+            plateGap(type:float, Nonetype or :obj:np.float64): 
+                This parameter indicates the private attribute plateGape of the object initialised from 
+                the class PlateHeatExchangerSide of the hydraulic dipoles attributes. 
+                unity:mm
+
+            plateThickness(type:float, Nonetype or :obj:np.float64):
+                It represents the thickness of the plates.
+                unity:mm
+            
+            streakWaveLength(type:float, Nonetype or :obj:np.float64): 
+                It represents the Wave length of the relief of the heat echanger plates
+                unIy:mm
+            
+            plateNumber(type:float, Nonetype or :obj:np.float64): 
+                It represents the number of plates of the heat exchanger
+            
+            angle(type:float, Nonetype or :obj:np.float64): 
+
+                It represents the angle of the relief on the surface of the plates.
+                unity:°
+
+            length(type:float, Nonetype or :obj:np.float64): 
+                It represents the length of the plates of the heat exchanger.
+                unity:m
+            
+            Npasse(type:int, Nonetype or :obj:np.int64): 
+                It represents the number of pass of the heat exchanger.
+        
+
+        """
     def __init__(self, name = 'plate heat exchanger', materialConductivity = 21.9,hydraulicDipoleCold = None, 
                 hydraulicDipoleWarm = None, length = 2.5, width = 1.0, plateNumber = 385.0, Npasse = 1,
                 plateThickness = 0.5,plateGap = 3.0,angle = 45.0,streakWaveLength = None, 
-                downstreamPoleCold = Pole('downstreamPoleCold'), upstreamPoleWarm = Pole('upstreamPoleCold'), 
+                downstreamPoleCold = Pole('downstreamPoleCold'), upstreamPoleCold = Pole('upstreamPoleCold'), 
                 downstreamPoleWarm = Pole('downstreamPoleWarm'), upstreamPoleWarm = Pole('upstreamPoleWarm'), 
                 flowCold = Flow(), flowWarm = Flow()) : 
-        """Class HeatExchanger __init__ method : 
+        """Class PlateExchanger __init__ method : 
         
         Note : 
             The heatExchanger class is used to represent any thermic transfert between Warm different flows.
  
-            the __init__ method offers the opportunity to give the attributes of the dipole object.
+            the __init__ method offers the opportunity to give the attributes of the exhchanger object.
 
         Args:
             name( type:any ): 
@@ -678,15 +912,17 @@ class PlateExchanger(HeatExchanger):
             hydraulicDipoleCold = PlateHeatExchangerSide('Plate heat exchanger side Cold', width, plateGap,
                                                         streakWaveLength, plateNumber, angle, length, Npasse,
                                                         hydraulicCorrectingFactor = 1.0, thermicCorrectingFactor = 1.0,
-                                                        downstreamPoleCold, upstreamPoleCold, flowCold)
+                                                        downstreamPole = downstreamPoleCold, upstreamPole= upstreamPoleCold, 
+                                                        flow = flowCold)
         if hydraulicDipoleWarm == None:
             hydraulicDipoleWarm = PlateHeatExchangerSide('Plate heat exchanger side Warm', width, plateGap,
                                                         streakWaveLength, plateNumber, angle, length, Npasse,
                                                         hydraulicCorrectingFactor = 1.0, thermicCorrectingFactor = 1.0,
-                                                        downstreamPoleWarm, upstreamPoleWarm, flowWarm)
+                                                        downstreamPole = downstreamPoleWarm, upstreamPole= upstreamPoleWarm, 
+                                                        flow = flowWarm)
         # raising of exceptions :
-        typeErrorAtEntering(hydraulicDipoleCold,Types = [], Classes=[PlateHeatExchangerSide] message = "the hydraulicDipoleCold must be a float or a None type")
-        typeErrorAtEntering(hydraulicDipoleWarm,Types = [], Classes=[PlateHeatExchangerSide] message = "the hydraulicDipoleWarm must be a float or a None type")
+        typeErrorAtEntering(hydraulicDipoleCold,Types = [], Classes=[PlateHeatExchangerSide], message = "the hydraulicDipoleCold must be a float or a None type")
+        typeErrorAtEntering(hydraulicDipoleWarm,Types = [], Classes=[PlateHeatExchangerSide], message = "the hydraulicDipoleWarm must be a float or a None type")
 
         typeErrorAtEntering(plateThickness, Types = [float, type(None)], message = "the plate thickness must be a float number")
         if type(plateThickness) is not type(None):
@@ -699,7 +935,7 @@ class PlateExchanger(HeatExchanger):
         self.__length = length
         self.__width = width
         self.__plateNumber = plateNumber
-        self.__passeNumber = passeNumber
+        self.__Npasse = Npasse
         self.__plateThickness = plateThickness
         self.__plateGap = plateGap
         self.__angle = angle
@@ -743,7 +979,7 @@ class PlateExchanger(HeatExchanger):
     def plateNumber(self,plateNumber): 
         typeErrorAtEntering( plateNumber, Types = [int], Classes = [np.int64], message = "the plateNumber must be a integer number")
         if plateNumber < 1:
-            raise ValueError("the
+            raise ValueError("the plateNumber must be a integer number")
         self.__plateNumber = plateNumber
         self.hydraulicDipoleCold.plateNumber = plateNumber
         self.hydraulicDipoleWarm.plateNumber = plateNumber
@@ -775,6 +1011,21 @@ class PlateExchanger(HeatExchanger):
         self.__plateGap = plateGap
         self.hydraulicDipoleCold.plateGap = plateGap
         self.hydraulicDipoleWarm.plateGap = plateGap
+    
+    @property 
+    def Npasse(self): 
+        """ get and set allows the user to modify the private Npasse attribute """
+        return self.__Npasse
+
+    @Npasse.setter 
+    def Npasse(self,Npasse): 
+        typeErrorAtEntering(Npasse, Types = [int], Classes = [], message = "the Npasse must be a float number")
+        if type(Npasse) is not type(None):
+            if Npasse < 1:
+                raise ValueError('Npasse must be strictly positive')
+        self.__Npasse = Npasse
+        self.hydraulicDipoleCold.Npasse = Npasse
+        self.hydraulicDipoleWarm.Npasse = Npasse
 
     @property 
     def angle(self): 
@@ -907,23 +1158,23 @@ class PlateExchanger(HeatExchanger):
         
         #the cold side parameters :
         if thermicCorrectingFactorCold == None:
-            thermicCorrectingFactor = hydraulicDiameterCold.thermicCorrectingFactor
+            thermicCorrectingFactorCold = hydraulicDipoleCold.thermicCorrectingFactor
         if hydraulicDiameterCold == None:
-            hydraulicDiameter = hydraulicDiameterCold.hydraulicDiameter
+            hydraulicDiameterCold = hydraulicDipoleCold.hydraulicDiameter
         if prandtlNumberCold == None:
-            prandtlNumber = hydraulicDiameterCold.flow.fluid.thermicCapacity * hydraulicDiameterCold.flow.fluid.dynamicViscosity / hydraulicDiameterCold.flow.fluid.thermicConductivity
+            prandtlNumber = hydraulicDipoleCold.flow.fluid.thermicCapacity * hydraulicDipoleCold.flow.fluid.dynamicViscosity / hydraulicDipoleCold.flow.fluid.thermicConductivity
         if thermicConductivityCold == None:
-            thermicConductivityCold = hydraulicDiameterCold.flow.fluid.thermicConductivity
+            thermicConductivityCold = hydraulicDipoleCold.flow.fluid.thermicConductivity
 
         #the warm side parameters :
         if thermicCorrectingFactorWarm == None:
-            thermicCorrectingFactor = hydraulicDiameterWarm.thermicCorrectingFactor
+            thermicCorrectingFactorWarm = hydraulicDipoleWarm.thermicCorrectingFactor
         if hydraulicDiameterWarm == None:
-            hydraulicDiameter = hydraulicDiameterWarm.hydraulicDiameter
+            hydraulicDiameterWarm = hydraulicDipoleWarm.hydraulicDiameter
         if prandtlNumberWarm == None:
-            prandtlNumber = hydraulicDiameterWarm.flow.fluid.thermicCapacity * hydraulicDiameterWarm.flow.fluid.dynamicViscosity / hydraulicDiameterWarm.flow.fluid.thermicConductivity
+            prandtlNumber = hydraulicDipoleWarm.flow.fluid.thermicCapacity * hydraulicDipoleWarm.flow.fluid.dynamicViscosity / hydraulicDipoleWarm.flow.fluid.thermicConductivity
         if thermicConductivityWarm == None:
-            thermicConductivityWarm = hydraulicDiameterWarm.flow.fluid.thermicConductivity
+            thermicConductivityWarm = hydraulicDipoleWarm.flow.fluid.thermicConductivity
 
         #raising exceptions :
 
@@ -947,7 +1198,7 @@ class PlateExchanger(HeatExchanger):
         #Cold side :
         typeErrorAtEntering(thermicCorrectingFactorCold, message = "the thermicCorrectingFactorCold must be a float number")
         if thermicCorrectingFactorCold <= 0 :
-            raise TypeError("the hydraulic correcting factor must be a strictly positive float close to 1")
+            raise TypeError("the thermic correcting factor must be a strictly positive float close to 1")
 
         typeErrorAtEntering(reynoldsNumberCold, message = "the reynoldsNumberCold must be a float number")
         if reynoldsNumberCold <=0 :
@@ -960,7 +1211,7 @@ class PlateExchanger(HeatExchanger):
         #Warm side :
         typeErrorAtEntering(thermicCorrectingFactorWarm, message = "the thermicCorrectingFactorWarm must be a float number")
         if thermicCorrectingFactorWarm <= 0 :
-            raise TypeError("the hydraulic correcting factor must be a strictly positive float close to 1")
+            raise TypeError("the thermic correcting factor must be a strictly positive float close to 1")
 
         typeErrorAtEntering(reynoldsNumberWarm, message = "the reynoldsNumberWarm must be a float number")
         if reynoldsNumberWarm <=0 :
@@ -974,13 +1225,13 @@ class PlateExchanger(HeatExchanger):
         nusseltNumberCold = hydraulicDipoleCold.thermicCorrelation(reynoldsNumberCold, prandtlNumberCold, length, angle, Npasse,
                                                                     hydraulicDiameterCold, parameterA, parameterB, parameterC, 
                                                                     thermicCorrectingFactorCold)
-        thermicConvectiveCoefficientCold = HydraulicThermicCalculus.nusselt(hydraulicDiameterCold, thermalConductivityCold, nusseltNumberCold)
+        thermicConvectiveCoefficientCold = HydraulicThermicCalculus.nusselt(hydraulicDiameterCold, thermicConductivityCold, nusseltNumberCold)
 
         # Nusselt in the Warm side :
         nusseltNumberWarm = hydraulicDipoleWarm.thermicCorrelation(reynoldsNumberWarm, prandtlNumberWarm, length, angle, Npasse,
                                                                     hydraulicDiameterWarm, parameterA, parameterB, parameterC, 
                                                                     thermicCorrectingFactorWarm)
-        thermicConvectiveCoefficientWarm = HydraulicThermicCalculus.nusselt(hydraulicDiameterWarm, thermalConductivityWarm, nusseltNumberWarm)
+        thermicConvectiveCoefficientWarm = HydraulicThermicCalculus.nusselt(hydraulicDiameterWarm, thermicConductivityWarm, nusseltNumberWarm)
 
         if materialConductivity == None :
             materialConductivity = self.materialConductivity

@@ -4,6 +4,32 @@ sys.path.append(".")
 from ExceptionsAndErrors import typeErrorAtEntering
 
 class Fluid:
+    """The Fluid class represents the caracteristic of a fluid which
+    circulate in any dipole of the circuit
+
+    Attributes:
+        name (any): this parameters will be the private attribute name of the function
+                        it's here to help the user to define his instances. By default
+                        it's water.
+        volumetricMass (type:float or :obj:np.float):
+            unity : kg/m³
+        dynamicViscosity (type:float or :obj:np.float):
+            unity : kg/m/s
+        thermicCapacity (type:float or :obj:np.float): 
+            unity : J/K
+        thermicConductivity (type:float or :obj:np.float): This parameter indicates the private attribut thermicConductivity of the 
+                                object created from the classe Fluid.
+                                unity : W/m/K
+        variables(type:list of booleans):
+            this parameter gives the knowledge of what variables can be variables with temperature, pressure,
+            (and salinity for sea water):
+            - variables[0] = True if volumetricMass is variable, else it's false
+            - variables[1] = True if dynamicViscosity is variable, else it's false
+            - variables[2] = True if thermicCapacity is variable, else it's false
+            - variables[3] = True if thermicConductivity is variable, else it's false
+    
+
+        """
     #l'initialisation de la classe : 
     def __init__(self, name = 'water', volumetricMass = float(1000), dynamicViscosity = 0.001,
                  thermicCapacity = float(4150), thermicConductivity = 0.6, variables = [False, False, False, False]) : 
@@ -66,7 +92,7 @@ class Fluid:
         typeErrorAtEntering( variables, Types = [list], Classes = [], message = 'variables must be a list of 4 booleans')
         if len(variables) != 4:
             raise TypeError('variables must be a list of 4 booleans')
-        for variable in variable:
+        for variable in variables:
             typeErrorAtEntering( variables, Types = [bool], Classes=[], message = 'variables must be a list of 4 booleans')
         self.__thermicConductivity = thermicConductivity
 
@@ -292,7 +318,7 @@ class Fluid:
             self.thermicConductivityEvolution = thermicConductivityEvolutionDefinition
             self.variables[3] = True
 
-    def volumetricMassEvolution(temperature, pressure, modify = True):
+    def volumetricMassEvolution(self, temperature, pressure, modify = True):
         """ the method volumericMassEvolution 
 
         Note: 
@@ -317,7 +343,7 @@ class Fluid:
         """
         return self.volumetricMass
 
-    def dynamicViscosityEvolution(temperature, pressure, modify = True):
+    def dynamicViscosityEvolution(self, temperature, pressure, modify = True):
         """ the method dynamicViscosityEvolution 
 
         Note: 
@@ -342,7 +368,7 @@ class Fluid:
         """
         return self.dynamicViscosity
 
-    def thermicCapacityEvolution(temperature, pressure, modify = True):
+    def thermicCapacityEvolution(self, temperature, pressure, modify = True):
         """ the method thermicCapacityEvolution 
 
         Note: 
@@ -367,7 +393,7 @@ class Fluid:
         """
         return self.thermicCapacity
 
-    def thermicConductivityEvolution(temperature, pressure, modify = True):
+    def thermicConductivityEvolution(self, temperature, pressure, modify = True):
         """ the method thermicConductivityEvolution 
 
         Note: 
@@ -393,6 +419,15 @@ class Fluid:
         return self.thermicConductivity
 
 class SeaWater(Fluid):
+    """The seaWater class represents the caracteristic of a sea Water fluid.
+
+    Attributes:
+        salinity (type:float or :obj:np.float64):
+            Unity : g/kg
+                 
+    
+
+        """
     def __init__(self, name = 'water', volumetricMass = float(1000), dynamicViscosity = 0.001, 
                 thermicCapacity = float(4150), thermicConductivity = 0.6, salinity = 0.0):
         """Class SeaWater __init__ method :
@@ -422,7 +457,10 @@ class SeaWater(Fluid):
             thermicConductivity (type:float or :obj:np.float64): This parameter indicates the private attribute thermicConductivity of the 
                                     object created from the classe Fluid.
                                     unity : W/m/K
-            salinity (type:float or :obj:np.float64): This parameter indicates the private attribute salinity of the object created from the class Fluid.
+            salinity (type:float or :obj:np.float64): 
+                This parameter indicates the private attribute salinity of 
+                the object created from the class Fluid.
+                Unity : g/kg
                         
         Raises : 
             TypeError : it's raised by the function typeErrorAtEntering.
@@ -531,25 +569,25 @@ class SeaWater(Fluid):
             self.thermicConductivityEvolution = thermicConductivityEvolutionDefinition
             self.variables[3] = True
 
-    def volumetricMassEvolution(temperature, pressure, salinity = None, modify = True):
+    def volumetricMassEvolution(self, temperature, pressure, salinity = None, modify = True):
         """ overloading of the methode of the class fluid by adding 
             the argument salinity in the function 
         """
         return self.volumetricMass
 
-    def dynamicViscosityEvolution(temperature, pressure, salinity = None, modify = True):
+    def dynamicViscosityEvolution(self, temperature, pressure, salinity = None, modify = True):
         """ overloading of the methode of the class fluid by adding 
             the argument salinity in the function 
         """
         return self.dynamicViscosity
 
-    def thermicCapacityEvolution(temperature, pressure, salinity = None, modify = True):
+    def thermicCapacityEvolution(self, temperature, pressure, salinity = None, modify = True):
         """ overloading of the methode of the class fluid by adding 
             the argument salinity in the function 
         """
         return self.thermicCapacity 
 
-    def thermicConductivityEvolution(temperature, pressure, salinity = None, modify = True):
+    def thermicConductivityEvolution(self, temperature, pressure, salinity = None, modify = True):
         """ overloading of the methode of the class fluid by adding 
             the argument salinity in the function 
         """

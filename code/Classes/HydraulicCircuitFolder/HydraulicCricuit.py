@@ -7,6 +7,30 @@ from matplotlib import numpy as np
 class HydraulicCircuit(Graph):
     #l'initialisation de la classe : 
     def __init__(self,name = 'Hydraulic circuit',dipoles = [],poles = []) : 
+        """Class Hydraulic __init__ method : 
+        
+        Note : 
+            The Class HydraulicCircuit represents an assembly of dipoles connected by the poles.
+ 
+            the __init__ method offers the opportunity to give the attributes of the exchanger object.
+
+        Args:
+            name( type:any ): 
+                this parameters indicates the private attribute name. This parameter gives 
+                the user the opportunity to organise his hydraulic circuit objects.
+
+            dipoles(:obj: Dipole):
+                It's a list of dipoles connected by the poles listed in the list poles
+            
+            poles(:obj: poles):
+                It's a list of poles which connect dipoles between them.
+
+        Raises : 
+            TypeError : 
+                It's raised by the function typeErrorAtEntering when the Types and the object
+                don't match with the type and the object defined.
+
+        """
         if type(dipoles) is not list:
             raise TypeError("dipoles must be a list of dipoles")
         for dipole in dipoles:
