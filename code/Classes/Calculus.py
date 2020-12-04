@@ -45,6 +45,7 @@ class Resolve:
         dimension = len(X0)
         iteration = 0
         Xn = X0
+        print(X0)
         deltaXn = np.zeros((dimension,1))
         deltaXn[0] = 1
         Fn = F(Xn)

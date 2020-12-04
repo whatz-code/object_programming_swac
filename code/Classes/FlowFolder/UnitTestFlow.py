@@ -1,11 +1,11 @@
 import unittest
 import sys
-sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes")
+sys.path.append("./Classes")
 
 
 
-from Flow import Flow
-from FluidFolder.Fluid import Fluid
+from FlowModule import Flow
+from FluidFolder.FluidModule import Fluid
 
 class TestFlow(unittest.TestCase):
     def setUp(self):

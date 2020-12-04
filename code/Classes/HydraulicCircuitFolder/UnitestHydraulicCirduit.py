@@ -5,11 +5,11 @@ sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Flow")
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Fluid")
 sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Graphe")
-from Flow import Flow
-from Graphe import Edge, Node
+from FlowFolder.Flow import Flow
+from GraphFolder.Graphe import Graph,Edge, Node
 from Calculus import Resolve
-from Fluid import Fluid
-from Dipole import Dipole, Pipe, PlateHeatExchangerSide, Pole, IdealPump
+from FluidFolder.Fluid import Fluid
+from DipoleFolder.Dipole import Dipole, Pipe, PlateHeatExchangerSide, Pole, IdealPump
 from HydraulicCricuit import HydraulicCircuit
 import numpy as np
 
@@ -94,7 +94,8 @@ class TestGraphe(unittest.TestCase):
 
         hydraulicCircuit = HydraulicCircuit(dipoles = [dipole1, dipole2, dipole3, dipole4, dipole5])
         hydraulicCircuit.print()
-        f, M = hydraulicCircuit.NodesLaw()
+        f, M = hydraulicCircuit.nodesLaw()
+
         print(M)
         print(np.linalg.matrix_rank(M))
         print(f([1,1,1,1,1]))
@@ -175,8 +176,8 @@ class TestGraphe(unittest.TestCase):
         pipe2 = Pipe("pipe2", downstreamPole=pole5, upstreamPole= pole1)
         pipe3 = Pipe("pipe3", downstreamPole=pole3, upstreamPole=pole4)
         flowOfblanck = Flow(pressureDifference=0.0)
-        blanck1 = Dipole("blanck1", flow = flowOfblanck, downstreamPole=pole2, upstreamPole=pole3, variables=[True, False, False])
-        blanck2 = Dipole("blanck2", flow = flowOfblanck, downstreamPole=pole4, upstreamPole=pole5, variables=[True, False, False] )
+        blanck1 = Dipole("blanck1", flow = flowOfblanck, downstreamPole=pole2, upstreamPole=pole3, variables=[True, False, False, False])
+        blanck2 = Dipole("blanck2", flow = flowOfblanck, downstreamPole=pole4, upstreamPole=pole5, variables=[True, False, False, False] )
         hydraulicCircuit = HydraulicCircuit(dipoles = [pump, pipe1, pipe2, pipe3, blanck1, blanck2])
         hydraulicCircuit.print()
         f, M = hydraulicCircuit.nodesLaw()
@@ -190,16 +191,20 @@ class TestGraphe(unittest.TestCase):
         pole2 = Pole("pole2")
         pole3 = Pole("pole3")
         pole4 = Pole("pole4")
-        pump = IdealPump("ideal pump", flowRate=0.23, downstreamPole=pole1,upstreamPole=pole2)
+        pump = IdealPump("ideal pump", flowRate=0.1, downstreamPole=pole1,upstreamPole=pole2)
         pipe = Pipe("pipe1",downstreamPole=pole3, upstreamPole=pole4)
         flowOfblanck = Flow(pressureDifference=0.0)
-        blanck1 = Dipole("blanck1", flow = flowOfblanck, downstreamPole=pole2, upstreamPole=pole3, variables=[True, False, False])
-        blanck2 = Dipole("blanck2", flow = flowOfblanck, downstreamPole=pole4, upstreamPole=pole1, variables=[True, False, False])
+        blanck1 = Dipole("blanck1", flow = flowOfblanck, downstreamPole=pole2, upstreamPole=pole3, variables=[True, False, False, False])
+        blanck2 = Dipole("blanck2", flow = flowOfblanck, downstreamPole=pole4, upstreamPole=pole1, variables=[True, False, False, False])
         hydraulicCircuit = HydraulicCircuit(dipoles = [pump, pipe, blanck1, blanck2])
         hydraulicCircuit.print()
         f, M = hydraulicCircuit.nodesLaw()
         hydraulicCircuit.resolutionFonctionnement()
+        hydraulicCircuit.assignPressure(pole1, 10**5 )
         print(pipe.flow.flowRate)
+        for pole in hydraulicCircuit.poles :
+            print(pole.name)
+            print(pole.pressure)
     
         
         
@@ -207,4 +212,4 @@ class TestGraphe(unittest.TestCase):
 
 if __name__ == '__main__':
     #unittest.main()
-    TestGraphe.testpointfunctionnement()
+    TestGraphe.testpointfunctionnement2()

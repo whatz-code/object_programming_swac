@@ -1,13 +1,13 @@
 import unittest
 import sys
-sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes")
-sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Flow")
-sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Fluid")
-sys.path.append("/home/raphael/Documents/Stage-application/Synthese-objet/Python/code/Classes/Graphe")
-from DipoleFolder.Dipole import Dipole, Pipe, PlateHeatExchangerSide, IdealPump, Pole
-from FlowFolder.Flow import Flow
-from FluidFolder.Fluid import Fluid
-from GraphFolder.Graphe import Graph, Node, Edge, Queue
+sys.path.append("./Classes")
+sys.path.append("./Classes/Flow")
+sys.path.append("./Classes/Fluid")
+sys.path.append("./Classes/Graphe")
+from DipoleFolder.DipoleModule import Dipole, Pipe, PlateHeatExchangerSide, IdealPump, Pole
+from FlowFolder.FlowModule import Flow
+from FluidFolder.FluidModule import Fluid
+from GraphFolder.GraphModule import Graph, Node, Edge, Queue
 
 class TestDipole(unittest.TestCase):
     def setUp(self):
