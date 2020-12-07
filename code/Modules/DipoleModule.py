@@ -170,7 +170,7 @@ class Dipole(Edge):
 
     """
     def __init__(self, name = 'Dipole', hydraulicDiameter = None, crossSectionalArea = None, downstreamPole = Pole('downstream pole'),
-                    upstreamPole = Pole('upstream Pole'), flow = Flow(), variables = [False, False, False, False], 
+                    upstreamPole = Pole('upstream Pole'), flow = None, variables = [False, False, False, False], 
                     caracteristics = [False, False], exchanger = False) : 
         """Class Dipole __init__ method : 
         
@@ -260,8 +260,11 @@ class Dipole(Edge):
         typeErrorAtEntering(upstreamPole,Types = [], Classes = [Pole], message = "the upstreamPole must be an instance of the class Pole")
         Edge.__init__(self, name, [downstreamPole, upstreamPole])
         
+        if flow == None :
+            flow = Flow()
         typeErrorAtEntering(flow,Types = [], Classes = [Flow], message = "the flow must be an instance of the class Flow")
         self.__flow = flow
+        flow = None
 
         typeErrorAtEntering(hydraulicDiameter, Types = [float, type(None)], message = "the hydraulic diameter must be a float number")
         if hydraulicDiameter !=None:
@@ -553,7 +556,7 @@ class Pipe(Dipole):
     """
     def __init__(self,name = 'Pipe', pipeDiameter = 0.348, rugosity = 0.0001, length = 50.0,
                     downstreamPole = Pole('downstream pole'), upstreamPole = Pole('upstream Pole'), 
-                    flow = Flow(), variables = [True, True, True, True], caracteristics = [True, True], 
+                    flow = None, variables = [True, True, True, True], caracteristics = [True, True], 
                     exchanger = False) : 
         """Class Pipe __init__ method : 
         
@@ -1055,11 +1058,11 @@ class PlateHeatExchangerSide(Dipole):
                 If the variables haven't the physical reality, example : hydraulicDiameter < 0
 
         """
-
+        
         # calcul of the hydraulic diameter
-        x = 2 * pi * plateGap / streakWaveLength
+        x = 2 * pi * plateGap / 2 / streakWaveLength
         phi = 1 / 6 * (1 + (1 + x ** 2) ** (1/2) + 4 * (1 + x ** 2) ** (1/2))
-        hydraulicDiameter = 4 * plateGap / phi
+        hydraulicDiameter = 4 * plateGap / 2 / phi * 10 ** (-3)
 
 
         # calcul of the cross sectionnal area 
@@ -1385,7 +1388,6 @@ class PlateHeatExchangerSide(Dipole):
         #just a step to calcul
         def etapeCalcul(angle, f0, f1):
             return cos(angle) / (parameterB * tan(angle) + parameterC * sin(angle) + f0 / cos(angle)) ** (1/2) + (1 - cos(angle)) / (parameterA * f1) ** (1/2)
-
         #it's considered that the flow is laminar if the reynolds number is higher than 2000 and
         #turbulent if the reynolds number is higher than 4000, between the 2 limits it's the 
         #average balanced by the distance of the limits 
@@ -1396,7 +1398,7 @@ class PlateHeatExchangerSide(Dipole):
             return (1-coefficient) * laminar(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse + coefficient * turbulent(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse
         else :
             return turbulent(reynoldsNumber, angle) * length / hydraulicDiameter * Npasse
-
+    
     def hydraulicCaracteristic(self, flowRate = None, fluid = None, flowRateUnity = "m3/s", pressureUnity = "Pa", hydraulicCorrectingFactor = None):
         """ the method hydraulicCaracteristic 
 
@@ -1440,7 +1442,6 @@ class PlateHeatExchangerSide(Dipole):
 
         typeErrorAtEntering( flowRate, message = "the flow rate must be a float number")
         typeErrorAtEntering( flowRate, Types = [], Classes = [Fluid], message = "the fluid must be a fluid object")
-
         return - HydraulicThermicCalculus.caracteristic(self, flowRate, fluid, flowRateUnity, pressureUnity) * hydraulicCorrectingFactor
 
     def thermicCorrelation(self, reynoldsNumber, prandtlNumber = None, length = None, 

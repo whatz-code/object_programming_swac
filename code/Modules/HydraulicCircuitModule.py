@@ -1,5 +1,3 @@
-import sys
-sys.path.append("./Classes")
 from Calculus import Resolve
 from DipoleModule import Pipe, Dipole, PlateHeatExchangerSide, IdealPump, Pole
 from GraphModule import Graph, Node, Edge, Queue
@@ -90,7 +88,7 @@ class HydraulicCircuit(Graph):
         testingVariables = []
         testingCaracteristics = []
         testingExchanger = []
-        for dipole in self.dipoles:       
+        for dipole in self.dipoles:
             testingVariables.append(dipole.variables)
             testingCaracteristics.append(dipole.caracteristics)
             testingExchanger.append(dipole.exchanger)
@@ -104,6 +102,7 @@ class HydraulicCircuit(Graph):
         self.__nodesLawFunction = None
         self.__loopLawFunction = None
         self.__hydraulicSystem = None
+    
 
 
     @property 
@@ -251,10 +250,6 @@ class HydraulicCircuit(Graph):
             node = queue.remove()
             exploration(node, queue)
                 
-
-
-
-
     def resolutionFonctionnement(self, flowRateMagnitude = 0.1 ,pressureMagnitude = 100000.0, buildSystem = False):
         """ This function resole the system and assign the variables to all the dipoles. 
         
@@ -274,7 +269,7 @@ class HydraulicCircuit(Graph):
 
         #estimations of the parameters :
         hydraulicSystem = self.hydraulicSystem
-        (functionToZero ,XToDipolesFlowRateOnly, XToDipolesUnknownPressureAndUnknownFlowRate,XToDipolesUnknownPressureOnly) = hydraulicSystem
+        (functionToZero ,XToDipolesFlowRateOnly, XToDipolesUnknownPressureOnly, XToDipolesUnknownPressureAndUnknownFlowRate) = hydraulicSystem
         X0 = []
         for key in XToDipolesFlowRateOnly:
             flowRateEstimation = self.dipoles[XToDipolesFlowRateOnly[key]].flow.flowRate
@@ -306,6 +301,7 @@ class HydraulicCircuit(Graph):
         for key in XToDipolesUnknownPressureAndUnknownFlowRate:
             self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].flow.flowRate = solution[key]
             self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].flow.pressureDifference = self.dipoles[XToDipolesUnknownPressureAndUnknownFlowRate[key]].hydraulicCaracteristic()
+    
 
     def BuildingOfHydraulicSystem(self, buildLaws = False):
         """ This function creates the hydraulic systeme from
@@ -415,13 +411,13 @@ class HydraulicCircuit(Graph):
                         P[id] = listOfP[id] 
                     else:
                         if not(id in localDipoleCaracteristic):
-                            P[id] = Xnew[localPressureUnknown[id]] / 10 ** 5
+                            P[id] = Xnew[localPressureUnknown[id]] 
                         else :
                             f = F[localDipoleCaracteristic[id]]
                             if Xnew[localPressureUnknown[id]] < 0:
-                                P[id] = f(-Xnew[localPressureUnknown[id]]) / 10 ** 5 
+                                P[id] = f(-Xnew[localPressureUnknown[id]])  
                             else :
-                                P[id] = f(Xnew[localPressureUnknown[id]]) / 10 ** 5
+                                P[id] = f(Xnew[localPressureUnknown[id]]) 
                 return loopLaw(P)
 
             #in X are first stocked the variables flowRates, then are stocked the rest :
@@ -437,13 +433,12 @@ class HydraulicCircuit(Graph):
                 return Ydeb + Ypressure
 
             XtoIdflowRateOnly = {i : X[i] for i in range(0, Nflow)}
-            XtoIdpressureOnly = {i : X[i] for i in range(Nflow, Nflow + Ncarac)}
-            XtoIdcaracteristic = {i : X[i] for i in range(Nflow + Ncarac, N)}
+            XtoIdcaracteristic = {i : X[i] for i in range(Nflow, Nflow + Ncarac)}
+            XtoIdpressureOnly = {i : X[i] for i in range(Nflow + Ncarac, N)}
 
             return (hydraulicSystem, XtoIdflowRateOnly, XtoIdpressureOnly, XtoIdcaracteristic)
         system = hydraulicFunctionToResolution()
         self.hydraulicSystem = system
-        print(self.hydraulicSystem)
         return system
 
 

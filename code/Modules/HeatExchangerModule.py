@@ -13,10 +13,10 @@ from HydraulicThermicCalculus import HydraulicThermicCalculus
 from FluidModule import Fluid, SeaWater
 from math import exp
 from math import log
-from Calculus import Resolve
+from Calculus import Resolve, DataAnalysis
 from FlowModule import Flow
 from ExceptionsAndErrors import typeErrorAtEntering
-
+from scipy.linalg import norm
 class HeatExchanger:
     """The heatExchanger class is used to represent any thermic 
     transfert between Warm different flows.
@@ -1137,7 +1137,122 @@ class PlateExchanger(HeatExchanger):
         self.hydraulicDipoleCold.streakWaveLength = streakWaveLength
         self.hydraulicDipoleWarm.streakWaveLength = streakWaveLength
     
-    def thermicTransfertCoefficient(self, reynoldsNumberCold = None, prandtlNumberCold = None, reynoldsNumberWarm = None, 
+    
+    def hydraulicErrorMinimization(self, functionnementsProvider, modify = True):
+        """ It gives the best thermicCorrectingFactor 
+        Args :
+        functionnementsProvider(:obj:array or list of list):
+                    each lign correspond to a functionnement point of the exchanger : 
+                    [[flowRate1, headLoss1],
+                    [flowRate2, headLoss2],
+                    ...]
+                    unity of flowRate : m³/s
+                    unity of headLoss : Pa
+        
+        """
+        (n_ligns, n_columns) = np.shape(functionnementsProvider)
+        def functionError(functionnementsProvider, hydraulicCorrectingFactor):
+            #memorization of the old parameters
+            old_correcting_factor_warm = self.hydraulicDipoleWarm.hydraulicCorrectingFactor
+            old_correcting_factor_cold = self.hydraulicDipoleCold.hydraulicCorrectingFactor
+            #assignment of the new parameters :
+            self.hydraulicDipoleWarm.hydraulicCorrectingFactor = hydraulicCorrectingFactor
+            self.hydraulicDipoleCold.hydraulicCorrectingFactor = hydraulicCorrectingFactor
+        
+            #conversion into array if it's a list
+            if type(functionnementsProvider) is list:
+                functionnementsProvider = np.array(functionnementsProvider)
+
+            (n_ligns, n_columns) = np.shape(functionnementsProvider)
+            error_global = 0
+            hydraulicSide = self.hydraulicDipoleWarm
+            for i in range(n_ligns):
+                flowRate = functionnementsProvider[i][0]
+                headLossProvider = functionnementsProvider[i][1]
+                headLossDipole = hydraulicSide.hydraulicCaracteristic(flowRate)
+                errori = (headLossDipole + headLossProvider) ** 2
+                error_global += errori
+            
+            self.hydraulicDipoleWarm.hydraulicCorrectingFactor = old_correcting_factor_warm
+            self.hydraulicDipoleCold.hydraulicCorrectingFactor = old_correcting_factor_cold
+            return (error_global) ** (1/2) / 10 ** 5 * 9.8
+            
+        local_error_function = lambda correction : functionError(functionnementsProvider,correction[0])
+        correction_0 = [0.1]
+        final_correction, error = DataAnalysis.minimization(local_error_function, correction_0)
+        if modify:
+            self.hydraulicDipoleWarm.hydraulicCorrectingFactor = final_correction
+            self.hydraulicDipoleCold.hydraulicCorrectingFactor = final_correction
+        return final_correction, error / n_ligns
+
+
+    def thermicErrorMinimization(self, functionnementsProvider, modify = True):
+        """ It gives the best thermicCorrectingFactor 
+            Args :
+            functionnementsProvider(:obj:array or list of list):
+                        each lign correspond to a functionnement point of the exchanger : 
+                        [flowRateCold, flowRateWarm, inputTemperatureCold, inputTemperatureWarm,
+                        outletTemperatureCold, outletTemperatureWarm]
+            
+            """
+        (n_ligns, n_columns) = np.shape(functionnementsProvider)
+        def functionError(functionnementsProvider, thermicCorrectingFactor):
+            """ This function gives the error of the function state equations to minimize.
+                
+                Args : 
+                    thermicCorrectingFactor(type:float):
+                    functionnementsProvider(:obj:array or list of list):
+                        each lign correspond to a functionnement point of the exchanger : 
+                        [flowRateCold, flowRateWarm, inputTemperatureCold, inputTemperatureWarm,
+                        outletTemperatureCold, outletTemperatureWarm]
+                
+                Returns : 
+                    Error(positive float)
+                """
+            #memorization of the old parameters
+            old_correcting_factor_warm = self.hydraulicDipoleWarm.thermicCorrectingFactor
+            old_correcting_factor_cold = self.hydraulicDipoleCold.thermicCorrectingFactor
+            #assignment of the new parameters :
+            self.hydraulicDipoleWarm.thermicCorrectingFactor = thermicCorrectingFactor
+            self.hydraulicDipoleCold.thermicCorrectingFactor = thermicCorrectingFactor
+
+            if self.stateEquations == None:
+                stateEquations = self.stateEquationDefinition()
+            else :
+                stateEquations = self.stateEquations
+            #conversion into array if it's a list
+            if type(functionnementsProvider) is list:
+                functionnementsProvider = np.array(functionnementsProvider)
+
+            (n_ligns, n_columns) = np.shape(functionnementsProvider)
+            error_global = 0
+            for i in range(n_ligns):
+                flowRateCold = functionnementsProvider[i][0]
+                flowRateWarm = functionnementsProvider[i][1]
+                inputTemperatureCold = functionnementsProvider[i][2]
+                inputTemperatureWarm = functionnementsProvider[i][3]
+                outletTemperatureCold = functionnementsProvider[i][4]
+                outletTemperatureWarm= functionnementsProvider[i][5]
+                Equs = stateEquations(flowRateCold, flowRateWarm, inputTemperatureCold,
+                                    inputTemperatureWarm, outletTemperatureCold, outletTemperatureWarm)
+                Equs = np.array(Equs)
+                errori = norm(Equs) ** 2
+                error_global += errori
+
+            self.hydraulicDipoleWarm.thermicCorrectingFactor = old_correcting_factor_warm
+            self.hydraulicDipoleCold.thermicCorrectingFactor = old_correcting_factor_cold
+            return error_global ** (1/2)
+
+        local_error_function = lambda correction : functionError(functionnementsProvider,correction[0])
+        correction_0 = [1.0]
+        final_correction, error = DataAnalysis.minimization(local_error_function, correction_0)
+        if modify:
+            self.hydraulicDipoleWarm.thermicCorrectingFactor = final_correction
+            self.hydraulicDipoleCold.thermicCorrectingFactor = final_correction
+        return final_correction, error / n_ligns
+
+        
+    def thermicTransfertCoefficient(self, reynoldsNumberCold = None, flowRateCold = None, prandtlNumberCold = None, reynoldsNumberWarm = None, flowRateWarm = None, 
                                     prandtlNumberWarm = None, length = None, angle = None, Npasse = None, hydraulicDiameterCold = None, 
                                     hydraulicDiameterWarm = None,thermicConductivityCold = None, thermicConductivityWarm = None, 
                                     materialConductivity = None, plateThickness = None, parameterA = 3.8, parameterB = 0.045, 
@@ -1150,8 +1265,11 @@ class PlateExchanger(HeatExchanger):
 
         Args:
             reynoldsNumberCold(type:float):
-                It corresponds to the Reynolds number which combines the
-                importants information of the flow and the dipole correspondant.
+                if this number is given it's this number which is 
+                taken into account and not the flowRate.
+
+            flowRateCold(type:float):
+                unity : m³/s
 
             prandtlNumberCold(type:float):
                 It corresponds to the prandtl number which is the ratio 
@@ -1174,8 +1292,11 @@ class PlateExchanger(HeatExchanger):
                 from the dipole object.
 
             reynoldsNumberWarm(type:float):
-                It corresponds to the Reynolds number which combines the
-                importants information of the flow and the dipole correspondant.
+                if this number is given it's this number which is 
+                taken into account and not the flowRate.
+            
+            flowRateWarm(type:float):
+                unity : m³/s
 
             prandtlNumberWarm(type:float):
                 It corresponds to the prandtl number which is the ratio 
@@ -1238,6 +1359,8 @@ class PlateExchanger(HeatExchanger):
             plateThickness = self.plateThickness * 10 ** (-3)
         
         #the cold side parameters :
+        if flowRateCold == None:
+            flowRateCold = self.hydraulicDipoleCold.flow.flowRate
         if thermicCorrectingFactorCold == None:
             thermicCorrectingFactorCold = hydraulicDipoleCold.thermicCorrectingFactor
         if hydraulicDiameterCold == None:
@@ -1248,6 +1371,8 @@ class PlateExchanger(HeatExchanger):
             thermicConductivityCold = hydraulicDipoleCold.flow.fluid.thermicConductivity
 
         #the warm side parameters :
+        if flowRateWarm == None:
+            flowRateWarm = self.hydraulicDipoleWarm.flow.flowRate
         if thermicCorrectingFactorWarm == None:
             thermicCorrectingFactorWarm = hydraulicDipoleWarm.thermicCorrectingFactor
         if hydraulicDiameterWarm == None:
@@ -1281,10 +1406,6 @@ class PlateExchanger(HeatExchanger):
         if thermicCorrectingFactorCold <= 0 :
             raise TypeError("the thermic correcting factor must be a strictly positive float close to 1")
 
-        typeErrorAtEntering(reynoldsNumberCold, message = "the reynoldsNumberCold must be a float number")
-        if reynoldsNumberCold <=0 :
-            raise ValueError("the reynolds number must be a strictly positive float")
-
         typeErrorAtEntering(prandtlNumberCold, message = "the prandtl number must be a float number")
 
         typeErrorAtEntering(thermicConductivityCold, message = "the thermic conductivity must be a float number")
@@ -1294,14 +1415,28 @@ class PlateExchanger(HeatExchanger):
         if thermicCorrectingFactorWarm <= 0 :
             raise TypeError("the thermic correcting factor must be a strictly positive float close to 1")
 
-        typeErrorAtEntering(reynoldsNumberWarm, message = "the reynoldsNumberWarm must be a float number")
-        if reynoldsNumberWarm <=0 :
-            raise ValueError("the reynolds number must be a strictly positive float")
-
         typeErrorAtEntering(prandtlNumberWarm, message = "the prandtl number must be a float number")
 
         typeErrorAtEntering(thermicConductivityWarm, message = "the thermic conductivity must be a float number")
-
+        if reynoldsNumberCold == None:
+            typeErrorAtEntering(flowRateCold, message = "the flowRateCold must be a float number")
+            if flowRateCold <=0 :
+                    raise ValueError("the reynolds number must be a strictly positive float")
+            caracteristicalVelocityCold = flowRateCold / self.hydraulicDipoleCold.crossSectionalArea
+            volumetricMassCold = self.hydraulicDipoleCold.flow.fluid.volumetricMass
+            dynamicViscosityCold = self.hydraulicDipoleCold.flow.fluid.dynamicViscosity
+            reynoldsNumberCold = HydraulicThermicCalculus.reynolds(self.hydraulicDipoleCold.hydraulicDiameter,
+                                                                            caracteristicalVelocityCold, 
+                                                                            volumetricMassCold, dynamicViscosityCold) 
+        if reynoldsNumberWarm == None:    
+            if flowRateWarm <=0 :
+                raise ValueError("the reynolds number must be a strictly positive float")                                                                
+            caracteristicalVelocityWarm = flowRateWarm / self.hydraulicDipoleWarm.crossSectionalArea
+            volumetricMassWarm = self.hydraulicDipoleWarm.flow.fluid.volumetricMass
+            dynamicViscosityWarm = self.hydraulicDipoleWarm.flow.fluid.dynamicViscosity
+            reynoldsNumberWarm = HydraulicThermicCalculus.reynolds(self.hydraulicDipoleWarm.hydraulicDiameter,
+                                                                            caracteristicalVelocityWarm, 
+                                                                            volumetricMassWarm,dynamicViscosityWarm)
         # Nusselt in the cold side :
         nusseltNumberCold = hydraulicDipoleCold.thermicCorrelation(reynoldsNumberCold, prandtlNumberCold, length, angle, Npasse,
                                                                     hydraulicDiameterCold, parameterA, parameterB, parameterC, 

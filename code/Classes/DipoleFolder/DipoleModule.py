@@ -785,7 +785,6 @@ class Pipe(Dipole):
             #calcul of the coefficient 
             headLossCoefficient = 1 / Inconnue ** 2
             return headLossCoefficient
-        
         #it's considered that the flow is laminar if the reynolds number is higher than 2000 and
         #turbulent if the reynolds number is higher than 4000, between the 2 limits it's the 
         #average balanced by the distance of the limits 
@@ -1388,7 +1387,6 @@ class PlateHeatExchangerSide(Dipole):
         #just a step to calcul
         def etapeCalcul(angle, f0, f1):
             return cos(angle) / (parameterB * tan(angle) + parameterC * sin(angle) + f0 / cos(angle)) ** (1/2) + (1 - cos(angle)) / (parameterA * f1) ** (1/2)
-
         #it's considered that the flow is laminar if the reynolds number is higher than 2000 and
         #turbulent if the reynolds number is higher than 4000, between the 2 limits it's the 
         #average balanced by the distance of the limits 

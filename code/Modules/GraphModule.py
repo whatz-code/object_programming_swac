@@ -10,6 +10,7 @@ class Graph:
 
         """
     def __init__(self, nodes = [], edges = []) : 
+        nodes = []
         """The __init__ method of the class allows the graph 
         to initialise his attributes
 
@@ -41,7 +42,8 @@ class Graph:
             if edge.nodes[1] not in edge.nodes[0].successors:
                 edge.nodes[0].addSuccessor(edge.nodes[1])
             for node in edge.nodes:
-                nodes.append(node)
+                if node not in nodes:
+                    nodes.append(node)
 
         #next we clean all the successors of nodes
         #which are out of the graph.
@@ -56,7 +58,7 @@ class Graph:
                     if edge.nodes[0] == node and edge.nodes[1] == successor:
                         newEdge = False
                 if newEdge:
-                    edge = Edge(nodes = [node, successor])
+                    edge = Edge(name = "newedge", nodes = [node, successor])
                     edges.append(edge)
                     if node not in nodes:
                         nodes.append(node)
@@ -81,7 +83,7 @@ class Graph:
     
         self.__nodes = nodes
         self.__edges = edges
-
+        
     @property 
     def nodes(self): 
         """ get and set of the private attribute nodes """
@@ -284,21 +286,27 @@ class Graph:
             raise ValueError("there is no node called by this name")
     
     def widthCourse(self, node): 
-        """ To travel into the graph """
+        """ To travel in width """
         if not(isinstance(node,Node)):
             raise TypeError('node must be node type')
         distance = {node0.id : [] for node0 in self.nodes}
         chemins = {node0.id : [] for node0 in self.nodes}   
+        cheminsName = {node0.name : [] for node0 in self.nodes}  
         boucles = [] 
         def exploration(node, queue, distance, chemins,boucles): 
             for successor in node.successors:
                 id0 = node.id
+                name0 = node.name
                 id = successor.id
+                name = successor.name
                 distance[id].append(distance[id0][-1]+1)
                 boucle = False
                 chemin = chemins[id0][-1]
+                cheminName = cheminsName[name0][-1]
                 newChemin = chemin + [id]
+                newCheminName = cheminName + [name]
                 chemins[id].append(newChemin)
+                cheminsName[name].append(newCheminName)
                 if id in chemin :
                     boucle = True
                     boucles.append(newChemin)
@@ -307,13 +315,87 @@ class Graph:
         queue = Queue([node.id]) 
         distance[node.id].append(0)
         chemins[node.id].append([node.id])
+        cheminsName[node.name].append([node.name])
         while queue.emptyQueue() == False:
             id0 = queue.remove()
             toNotFollow = id0
             node = self.nodes[id0]
             exploration(node, queue, distance,chemins,boucles)
-
         return(distance, chemins, boucles)
+
+    def loops(self, node):
+        """ To travel in depth """
+        if not(isinstance(node,Node)):
+            raise TypeError('node must be node type')
+ 
+        #creating a function which identifies the first loop
+        #it can be find and modify the graph to search another.
+        def loopIdentification(id, graphByIds, loops):
+            pile = [id]
+            test_loop = False
+            loop = []
+            ascent = False
+            while not ascent :
+                id = pile[-1]
+                successors = graphByIds[id]
+                if len(successors) != 0:
+                    if successors[0] in pile:
+                        id0 = successors[0]
+                        pile2 = pile[:]
+                        loop.append(id0)
+                        id = None
+                        while id!=id0:
+                            id = pile2.pop()
+                            loop.append(id)
+                        loops.append(loop)
+                        test_loop = True
+                        ascent = True
+                    else :
+                        pile.append(successors[0])
+                else : 
+                    pile.pop()
+                    ascent = True
+            newGraph = False
+            while not newGraph and len(pile) > 0:
+                id = pile[-1]
+                successors = graphByIds[id]
+                if len(successors) > 1:
+                    successors.pop(0)
+                    newGraph = True
+                pile.pop()
+            return test_loop, newGraph
+
+        nodes = self.nodes
+        graphByIds = {}
+        #starting by creating an another representation of the graph
+        #to not affect the class
+        for node in nodes:
+            id = node.id
+            successors = []
+            for successor in node.successors:
+                successors.append(successor.id)
+            successors = list(set(successors))
+            graphByIds[id] = successors
+
+        loops = []
+        id = node.id
+        test_loop = True
+        newGraph = True
+        while test_loop and newGraph:
+            test_loop, newGraph = loopIdentification(id, graphByIds, loops)
+        loopsByEdges = []
+        for loop in loops:
+            loopByEdges = []
+            N = len(loop)
+            nodes = self.nodes
+            loop.reverse()
+            for j in range(1,N):
+                loopByEdges.append(self.searchEdgesByNodes([nodes[loop[j-1]], 
+                                                            nodes[loop[j]]]))
+            loopsByEdges.append(loopByEdges)
+
+        return loopsByEdges        
+
 
     def distance(node1,node2):
         """ give the distance between 2 nodes """
@@ -321,28 +403,6 @@ class Graph:
             raise TypeError('node must be node type')
         distancesToNode1, chemins, boucles = self.widthCourse(node1)
         distancesToNode2 = distancesToNode1[node2.id]
-
-
-    def loops(self, node, by = 'edges'):
-        """ give all the loops were there is the node given """
-        if not(isinstance(node,Node)):
-            raise TypeError('node must be node type')
-        distance, paths, loopsById = self.widthCourse(node)
-        loopsByNodes = []
-        loopsByEdges = []
-        for loop in loopsById:
-            loopByNodes = []
-            loopByEdges = []
-            for id in loop:
-                loopByNodes.append(self.nodes[id])
-            N = len(loop)
-            for j in range(1,N):
-                loopByEdges.append(self.searchEdgesByNodes([loopByNodes[j-1], loopByNodes[j]]))
-            loopsByNodes.append(loopByNodes)
-            loopsByEdges.append(loopByEdges)
-        if by == 'nodes':
-            return loopsByNodes
-        return loopsByEdges
         
     def searchEdgesByNodes(self, nodes):
         """ give all the edges for given nodes :

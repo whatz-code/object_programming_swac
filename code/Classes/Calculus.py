@@ -45,7 +45,6 @@ class Resolve:
         dimension = len(X0)
         iteration = 0
         Xn = X0
-        print(X0)
         deltaXn = np.zeros((dimension,1))
         deltaXn[0] = 1
         Fn = F(Xn)
@@ -54,6 +53,7 @@ class Resolve:
             Fn = F(Xn)
             Fn = np.array(Fn)
             jacobian = Resolve.estimationJacobian(F,Xn,dx = 0.00000000001)
+            print(Xn)
             invJacobian = np.linalg.inv(jacobian)
             Xn1 = Xn - np.dot(invJacobian, Fn)
             deltaXn = Xn1 - Xn

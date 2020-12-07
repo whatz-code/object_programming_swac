@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sc
 from scipy.linalg import norm
-from scipy.optimize import curve_fit
+from scipy.optimize import minimize
 class Resolve:
     #pour utiliser une telle méthode il faut s'assurer que l'on ait suffisament proche de la solution et que abs(g'(solution)+relaxation)<abs(1+relaxation)
     def fixePointResolution(g, X0, relaxation = 0, seuil = 0.000001, iterationMax = 150): #g est la fonction du point fixe g(x) = x
@@ -147,10 +147,16 @@ class DataAnalysis :
     
     interpolation = staticmethod(interpolation)
 
-    def curveFit(parameters0, boundsParameters, g, Xdata, Ydata, bounds): #dans le cas des échangeurs, Xdata correspond aux débits d'entrées et aux températures d'entrées et Ydata correspond aux valeurs que l'on souhaite atteindre
+    def curveFit(parameters0, boundsParameters, g, Xdata, Ydata, bounds): 
+        #dans le cas des échangeurs, Xdata correspond aux débits d'entrées et aux températures d'entrées et Ydata correspond aux valeurs que l'on souhaite atteindre
         return sc.curve_fit(g, Xdata, Ydata, parameters0, boundsParameters)
-            
-            
+    
+    def minimization(function, X0):
+        res = minimize(function, X0, method='nelder-mead', options={'xatol': 1e-8})
+        X = res.x
+        return X, function(X)
+    
+    minimization = staticmethod(minimization)
 
 #test
 
